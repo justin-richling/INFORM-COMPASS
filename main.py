@@ -7,21 +7,21 @@ import inform_grid_utils
 dir = '/Users/patnaude/Documents/Data/SOCRATES'
 flight_paths = inform.find_flight_fnames(dir)
 
-nc = inform.open_nc(flight_paths[1])
+# Select which flight
+nc = inform.open_nc(flight_paths[2])
 
 vars_to_read = inform.read_vars(nc)
 df = inform.read_flight_nc_1hz(nc,vars_to_read)
 
 cesm_dir = '/Users/patnaude/Documents/Data/cesmdata'
 
-# Open model files both free and nudg
+# # Open model files both free and nudg
 cesm_files = inform.find_nc_fnames(cesm_dir)
 cesm_ndg = inform.open_nc(cesm_files['Nudg'][0])
-
 cesm_fr = inform.open_nc(cesm_files['Free'][0])
 
-# Grid aircraft data
-grid_dat, grid, bounds = inform_grid_utils.grid_flight(cesm_fr,cesm_ndg,df,nc)
+# # Grid aircraft data
+grid_dat, grid, bounds = inform_grid_utils.grid_flight(cesm_fr,cesm_ndg,df)
 
 # inform_grid_utils.write_nc(grid_dat)
 # Plot 2-D of flight location 

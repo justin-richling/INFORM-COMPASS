@@ -64,9 +64,7 @@ def read_flight_nc_1hz(nc: xr.open_dataset, read_vars) -> pd.DataFrame:
     NOTE: a low-rate, 1 Hz, flight data file is assumed
 
     :param nc: netCDF4._netCDF4.Dataset object opened by open_flight_nc.
-    :param read_vars: An optional list of strings of variable names to be read into memory. A default
-                      list, vars_to_read, is specified above. Passing in a similar list will read in those variables
-                      instead.
+    :param read_vars: An list of strings of variable names to be read into memory.
 
     :return: Returns a pandas data frame.
     """
@@ -208,6 +206,7 @@ def read_vars(nc):
     p = 'PSXC'
     ew = 'EWX'
     rh = 'RHUM'
+    
     vars_to_read = [time, lat, lon, alt, temp, dwpt, u,  w, p, ew, rh]
     # Thermodynamic data
     if any('THETA' in var for var in var_list): 
@@ -226,7 +225,6 @@ def read_vars(nc):
     if any('UHSAS' in var for var in var_list) or any('CONCN' in var for var in var_list):
         aer_var = [var for var in var_list if ('UHSAS' in var or 'CONCU' in var or 'CONCN' in var) and ('AU' not in var and 'UD' not in var and 'CUH' not in var)]
         uhsas_cells = var_list['CUHSAS_LWII'].CellSizes
-        print(aer_var)
         vars_to_read.extend(aer_var)
     
     print('Variables included:')
@@ -249,71 +247,6 @@ def find_sondes(dir_path: str) -> list[str]:
     return flight_paths
 
 def read_sonde2df(file_path):
-    # Read the entire file into memory
-    with open(file_path, "r", encoding="utf-8") as file:
-        lines = file.readlines()
-    
-    # Identify all "Nominal Release Time" occurrences
-    start_indices = [i for i, line in enumerate(lines) if "Nominal Release Time" in line]
-    # Storage for datasets
-    datasets = []
-    drop_times = []
-    # Process each radiosonde dataset
-    for idx, start in enumerate(start_indices):
-        # Find the start of the tabular data
-        data_start = None
-        for i in range(start, len(lines) - 2):  # Avoid out-of-bounds errors
-            if lines[i].strip().startswith("Time") and "Press" in lines[i]:  # Detect header row directly
-                data_start = i + 3  # Data starts 2 lines after the column names
-                break
-        date_time_str = lines[start].split("):")[1].strip()
-    
-        # Convert to datetime64
-        drop_times.append(pd.to_datetime(date_time_str, format='%Y, %m, %d, %H:%M:%S'))
-        if data_start is None:
-            print(f"Warning: No data start found for entry at line {start}")
-            continue  # Skip if data start not found
-    
-        # Extract column names from the header row
-        columns = lines[data_start - 3].strip().split()
-        # Determine dataset end (next "Nominal Release Time" or end of file)
-        end = start_indices[idx + 1] if idx + 1 < len(start_indices) else len(lines)
-        
-        # Extract the data section
-        data_lines = lines[data_start:end]
-        data = [line.strip().split() for line in data_lines]
-    
-        # Filter out rows that don't match the number of columns
-        data = [row for row in data if len(row) == len(columns)]
-    
-        # Convert to a DataFrame
-        df = pd.DataFrame(data, columns=columns)
-        # Remove rows containing 9999.0 in any column
-        df = df[(df != 9999.0).all(axis=1)]  
-        # Convert numeric columns where possible
-        df = df.apply(pd.to_numeric, errors='coerce')
-    
-        # Append dataset
-        datasets.append(df)
-
-    return datasets, drop_times
-
-def find_sondes(dir_path: str) -> list[str]:
-    """
-    find_flight_fnames just searches a directory for all *.nc files and returns a list of them.
-
-    :param dir_path: a path to the directory containing flight netcdf files
-
-    :return: Returns a list of flight netcdf files.
-    """
-    flight_paths=[]
-    flight_fnames = sorted([fname for fname in os.listdir(dir_path) if fnmatch(fname, "*.cls")])
-    for i in range(len(flight_fnames)):
-        flight_paths.append(dir_path + '/' + flight_fnames[i])
-    
-    return flight_paths
-
-def read_sonde2df(file_path):
     """
     Reads a `.cls` radiosonde file and extracts multiple datasets with their nominal release times.
 
@@ -389,106 +322,6 @@ def read_sonde2df(file_path):
         df.attrs["drop_time"] = drop_time
         # Append dataset
         datasets.append(df)
-
-    return datasets#, drop_times
-
-def find_sondes(dir_path: str) -> list[str]:
-    """
-    find_sondes just searches a directory for all *.cls files and returns a list of them.
-
-    :param dir_path: a path to the directory containing flight netcdf files
-
-    :return: Returns a list of flight netcdf files.
-    """
-    flight_paths=[]
-    flight_fnames = sorted([fname for fname in os.listdir(dir_path) if fnmatch(fname, "*.cls")])
-    for i in range(len(flight_fnames)):
-        flight_paths.append(dir_path + '/' + flight_fnames[i])
-    
-    return flight_paths
-
-import pandas as pd
-
-def read_sonde2df(file_path: str) -> tuple[list[pd.DataFrame], list[pd.Timestamp]]:
-    """
-    Reads a `.cls` radiosonde file and extracts multiple datasets with their nominal release times.
-
-    :param file_path: Path to the `.cls` file containing radiosonde data.
-
-    :return: A tuple containing:
-        - A list of Pandas DataFrames, each representing an individual radiosonde dataset.
-        - A list of corresponding nominal release times as Pandas Timestamps.
-    
-    :raises FileNotFoundError: If the file does not exist.
-    :raises ValueError: If the file is incorrectly formatted or missing essential data.
-    """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File '{file_path}' not found.")
-
-    # Read the entire file into memory
-    with open(file_path, "r", encoding="utf-8") as file:
-        lines = file.readlines()
-
-    # Identify all "Nominal Release Time" occurrences
-    start_indices = [i for i, line in enumerate(lines) if "Nominal Release Time" in line]
-    
-    if not start_indices:
-        raise ValueError(f"No 'Nominal Release Time' entries found in file: {file_path}")
-
-    datasets = []
-    drop_times = []
-
-    # Process each radiosonde dataset
-    for idx, start in enumerate(start_indices):
-        # Find the start of the tabular data
-        data_start = None
-        for i in range(start, len(lines) - 2):
-            if lines[i].strip().startswith("Time") and "Press" in lines[i]:  # Detect header row
-                data_start = i + 3  # Data starts 2 lines after the column names
-                break
-
-        if data_start is None:
-            print(f"Warning: No data start found for entry at line {start}")
-            continue  # Skip this dataset
-
-        # Extract and convert nominal release time
-        try:
-            date_time_str = lines[start].split("):")[1].strip()
-            drop_time = pd.to_datetime(date_time_str, format='%Y, %m, %d, %H:%M:%S')
-        except (IndexError, ValueError) as e:
-            print(f"Warning: Failed to parse drop time at line {start}: {e}")
-            continue  # Skip this dataset
-
-        drop_times.append(drop_time)
-
-        # Extract column names
-        columns = lines[data_start - 3].strip().split()
-
-        # Determine dataset end (next "Nominal Release Time" or end of file)
-        end = start_indices[idx + 1] if idx + 1 < len(start_indices) else len(lines)
-
-        # Extract and clean data
-        data_lines = [line.strip().split() for line in lines[data_start:end]]
-        data = [row for row in data_lines if len(row) == len(columns)]
-
-        # Convert to DataFrame
-        df = pd.DataFrame(data, columns=columns)
-
-        if df.empty:
-            print(f"Warning: Empty dataset at line {start}")
-            continue  # Skip empty datasets
-
-        # Remove rows containing 9999.0 in any column
-        df = df[(df != "9999.0").all(axis=1)]
-
-        # Convert numeric columns where possible
-        df = df.apply(pd.to_numeric, errors='coerce')
-
-        # Store drop time in DataFrame metadata
-        df.attrs["drop_time"] = drop_time
-        # Append dataset
-        datasets.append(df)
-        # datasets.attr
 
     return datasets
 
