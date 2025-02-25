@@ -1,0 +1,22 @@
+# Bytecode and cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS-specific files
+.DS_Store
+
+# Logs and temporary files
+logs/
+*.log
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
