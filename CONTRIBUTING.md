@@ -1,5 +1,47 @@
 ## Quick Step by Step to Contributing:
 
+#### 0) Set up your GitHub account and Personal Access Token (PAT)
+
+GitHub has moved beyond using passwords and now requires a PAT to interact with your repositories. To set up your PAT, navigate to your GitHub profile which is the profile picture at the top right of your GitHub page
+
+![Screenshot 2025-02-26 at 1 39 14 PM (2)](https://github.com/user-attachments/assets/3ae5872e-1d09-4442-a284-07abf5b7757b)
+
+<br>
+
+Find the settings tab:
+
+![Screenshot 2025-02-26 at 1 32 50 PM (2)](https://github.com/user-attachments/assets/021d442b-112e-400f-b789-690a08cc1d16)
+
+Scroll to the bottom to find the Developers Settings tab:
+
+![Screenshot 2025-02-26 at 1 32 59 PM (2)](https://github.com/user-attachments/assets/833153e5-7f1a-4732-96f0-8a07f35e25f6)
+
+Go to the Personal Access Tokens tab:
+
+![Screenshot 2025-02-26 at 1 33 10 PM (2)](https://github.com/user-attachments/assets/bfa2e730-83fb-443f-9bbe-049813009843)
+
+Click on the Generate New Token drop down:
+
+![Screenshot 2025-02-26 at 1 33 18 PM (2)](https://github.com/user-attachments/assets/0c57135a-337c-47fc-838d-3b090e4c7e60)
+
+This will bring up a page for different access options:
+
+![Screenshot 2025-02-26 at 1 45 58 PM (2)](https://github.com/user-attachments/assets/6f692275-5950-4dcc-afc5-ed7c564cdc88)
+
+Finally at the bottom, generate new PAT:
+
+![Screenshot 2025-02-26 at 1 46 39 PM (2)](https://github.com/user-attachments/assets/83dacc27-93d0-4e02-bcbf-5105fbecd597)
+
+This will bring up a dialog box that shows the PAT. You MUST write this down or save it somewhere because you will not be able to see it again once it's been created. Don't worry if you do lose it, you will just have to do these steps again to make a new one.
+
+This PAT is what you will use for your password when Git prompts you for password. NOTE: you will have to use this EVERYTIME you push or pull via command line. To avoid this, you can upate your Git config file:
+
+`git config --global credential.helper store`
+
+You should only have to input your GitHub account and PAT once, then it should be stored after that!
+
+---
+
 #### 1) Fork this repo so you can start working in your own environment
 
 GitHub info on Forks:
@@ -7,7 +49,7 @@ GitHub info on Forks:
 > If you want to contribute to someone else's project but don’t have permission to make changes directly, you can create your own copy of the project, make updates, and then suggest those updates for inclusion in the main project. This process is often called a "fork and pull request" workflow.
 > When you create your own copy (or "fork") of a project, it’s like making a new workspace that shares code with the original project. This is useful for open-source projects or anytime you don’t have write access to the original project.
 
-To fork the repo, navigate to the NCAR COMPASS page and find the `fork` button
+To fork the repo, navigate to the NCAR COMPASS main page and find the `fork` button
 
 ![Screenshot 2025-02-26 at 9 28 06 AM (2)](https://github.com/user-attachments/assets/0d12f629-a56b-4f27-9130-0e0a510c47dc)
 <br>
