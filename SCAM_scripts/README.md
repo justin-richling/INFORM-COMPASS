@@ -4,7 +4,7 @@ Running SCAM on the Derecho supercomputer requires access to CPU core-hours. You
 * Then run create_scamtest.F2000.ne3_ne3_mg37.005.**scm.new**.cold_off.derecho
 
 ## See if there is a project/account available for your use
-You can find out which projects/accounts are linked to your login via the Sytems Accounting Manager webpage
+You can find out which projects/accounts are linked to your login via the Systems Accounting Manager webpage
 
 &nbsp;&nbsp;&nbsp;&nbsp;[https://sam.ucar.edu](https://sam.ucar.edu)
 
