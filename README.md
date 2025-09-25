@@ -4,7 +4,7 @@
 This cookbook can be run from /glade on Derecho. If you are not already set up, follow the steps below to gain access and configure your environment.
 
 ### Obtain access to /glade on Derecho
-You will need to run the scripts from Derecho so they can access the ERA5 data stored in /glade. See https://ncar-hpc-docs.readthedocs.io/en/latest/compute-systems/derecho/ for instructions to obtain access.
+You will need to run the scripts from Derecho so you can access the ERA5 data stored in /glade. See https://ncar-hpc-docs.readthedocs.io/en/latest/compute-systems/derecho/ for instructions to obtain access.
 
 ### Login to Derecho
 See https://ncar-hpc-docs.readthedocs.io/en/latest/getting-started/accounts/duo/#logging-in-with-duo for details on authenticating
