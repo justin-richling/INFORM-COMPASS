@@ -24,7 +24,7 @@ Click on the Generate New Token drop down:
 
 ![Screenshot 2025-02-26 at 1 33 18 PM (2)](https://github.com/user-attachments/assets/0c57135a-337c-47fc-838d-3b090e4c7e60)
 
-This will bring up a page for different access options. NOTE: if you don't change the experation time, you will have to do this again after it expires. There are a whole bunch of options and I don't have the expertise to know exactly which ones are best, but at least check the boxes for `repo`
+This will bring up a page for different access options. NOTE: if you don't change the expiration time, you will have to do this again after it expires. There are a whole bunch of options and I don't have the expertise to know exactly which ones are best, but at least check the boxes for `repo`
 
 ![Screenshot 2025-02-26 at 1 45 58 PM (2)](https://github.com/user-attachments/assets/6f692275-5950-4dcc-afc5-ed7c564cdc88)
 
