@@ -1,6 +1,11 @@
 import pandas as pd
 import numpy as np
 import inform_utils as inform
+import glob
+import xarray as xr
+import datetime
+from scipy.spatial import cKDTree
+from datetime import time
 
 def assign_flight_type(df):
     """
@@ -160,143 +165,155 @@ def assign_flight_type(df):
     #------------------------------
     #----- Find cloud layers ------
     #------------------------------
-    
     # Ensure 'Time' is in datetime format
     df = df.copy()  # Avoid modifying original DataFrame
     df['Time'] = pd.to_datetime(df['Time'])
     
-    # Create a mask where the conditions are met
-    df['blocked'] = (df['PLWCD_RWIO'] > 0.001) & (df['CONCD_RWIO'] > 10)
+    # Find best match for column names dynamically
+    plwc_col = next((col for col in df.columns if 'PLWCD' in col), None)
+    concd_col = next((col for col in df.columns if 'CONCD' in col), None)
 
-    # Assign unique block IDs when blocked condition changes
-    df['block_id'] = (df['blocked'] != df['blocked'].shift()).cumsum()
-    
-    # Group by block ID and filter only the blocked regions
-    block_info = df[df['blocked']].groupby('block_id').agg(
-        start_time=('Time', 'first'),
-        end_time=('Time', 'last'),
-        lower_bound=('GGALT', 'min'),  # Get the minimum altitude (lower bound)
-        upper_bound=('GGALT', 'max'),  # Get the maximum altitude (upper bound)
-    )
-    
-    # Calculate duration directly by subtracting start_time from end_time
-    block_info['duration'] = block_info['end_time'] - block_info['start_time']
-    
-    # Filter out short-duration blocks
-    min_vertical = 30  # Adjust as needed (100 meters in your case)
-    valid_blocks = block_info[(block_info['upper_bound'] - block_info['lower_bound']) > min_vertical].reset_index(drop=True)
-    
-    # Define the altitude difference and time gap thresholds
-    altitude_gap_threshold = 200  # Increased altitude gap threshold
-    # time_gap_threshold = pd.Timedelta(minutes=20)  # Time gap threshold for merging
-    
-    # Sort the valid blocks by their start time to process them in sequence
-    valid_blocks = valid_blocks.sort_values(by='lower_bound')
-    
-    # Initialize a list to store combined blocks
-    combined_blocks = []
-    previous_block = valid_blocks.iloc[0].to_dict()
-    
-    # Iterate through the blocks and merge those that are within the thresholds
-    for idx, current_block in valid_blocks.iloc[1:].iterrows():
-        # Calculate the altitude gap between the current block's lower bound and the previous block's upper bound
-        altitude_gap = abs(current_block['lower_bound'] - previous_block['upper_bound'])
-        
-        # Calculate the time gap between the current block's start time and the previous block's end time
-        time_gap = current_block['start_time'] - previous_block['end_time']
-        # Check if the altitude gap is within the threshold or if the time gap is within the allowed range for smaller altitudes
-        if altitude_gap <= altitude_gap_threshold :
-            # If both criteria are met, merge the blocks
-            previous_block['end_time'] = max(previous_block['end_time'], current_block['end_time'])  # Get the latest end time
-            previous_block['start_time'] = min(previous_block['start_time'], current_block['start_time'])  # Get the earliest start time
-            previous_block['upper_bound'] = max(previous_block['upper_bound'], current_block['upper_bound'])  # Update upper bound
-            previous_block['lower_bound'] = min(previous_block['lower_bound'], current_block['lower_bound'])  # Update lower bound
-            
-            # Recalculate the duration for the merged block
-            previous_block['duration'] = previous_block['end_time'] - previous_block['start_time']
+    # Add check if there are any cloudy periods
+    if not plwc_col or not concd_col:
+        print("Required columns not found. Skipping cloud detection.")
+        final_cloud_blocks = pd.DataFrame(columns=['start_time', 'end_time', 'lower_bound', 'upper_bound', 'duration', 'Location'])
+        df['cloud_status'] = 'Out-of-cloud'
+        df['Location'] = 'Free'
+    else:
+        df['blocked'] = (df[plwc_col] > 0.001) & (df[concd_col] > 10)
+        if not df['blocked'].any():
+            print("No valid cloud blocks found. Skipping cloud layer logic.")
+            final_cloud_blocks = pd.DataFrame(columns=['start_time', 'end_time', 'lower_bound', 'upper_bound', 'duration', 'Location'])
+            df['cloud_status'] = 'Out-of-cloud'
+            df['Location'] = 'Free'
         else:
-            # If the blocks are far apart, save the previous block and move to the next one
+            df['block_id'] = (df['blocked'] != df['blocked'].shift()).cumsum()
+            block_info = df[df['blocked']].groupby('block_id').agg(
+                start_time=('Time', 'first'),
+                end_time=('Time', 'last'),
+                lower_bound=('GGALT', 'min'),
+                upper_bound=('GGALT', 'max'),
+            )
+
+        
+            # Calculate duration directly by subtracting start_time from end_time
+            block_info['duration'] = block_info['end_time'] - block_info['start_time']
+            
+            # Filter out short-duration blocks
+            min_vertical = 30  # Adjust as needed (100 meters in your case)
+            valid_blocks = block_info[(block_info['upper_bound'] - block_info['lower_bound']) > min_vertical].reset_index(drop=True)
+            
+            # Define the altitude difference and time gap thresholds
+            altitude_gap_threshold = 200  # Increased altitude gap threshold
+            # time_gap_threshold = pd.Timedelta(minutes=20)  # Time gap threshold for merging
+            
+            # Sort the valid blocks by their start time to process them in sequence
+            valid_blocks = valid_blocks.sort_values(by='lower_bound')
+            
+            # Initialize a list to store combined blocks
+            combined_blocks = []
+            previous_block = valid_blocks.iloc[0].to_dict()
+            
+            # Iterate through the blocks and merge those that are within the thresholds
+            for idx, current_block in valid_blocks.iloc[1:].iterrows():
+                # Calculate the altitude gap between the current block's lower bound and the previous block's upper bound
+                altitude_gap = abs(current_block['lower_bound'] - previous_block['upper_bound'])
+                
+                # Calculate the time gap between the current block's start time and the previous block's end time
+                time_gap = current_block['start_time'] - previous_block['end_time']
+                # Check if the altitude gap is within the threshold or if the time gap is within the allowed range for smaller altitudes
+                if altitude_gap <= altitude_gap_threshold :
+                    # If both criteria are met, merge the blocks
+                    previous_block['end_time'] = max(previous_block['end_time'], current_block['end_time'])  # Get the latest end time
+                    previous_block['start_time'] = min(previous_block['start_time'], current_block['start_time'])  # Get the earliest start time
+                    previous_block['upper_bound'] = max(previous_block['upper_bound'], current_block['upper_bound'])  # Update upper bound
+                    previous_block['lower_bound'] = min(previous_block['lower_bound'], current_block['lower_bound'])  # Update lower bound
+                    
+                    # Recalculate the duration for the merged block
+                    previous_block['duration'] = previous_block['end_time'] - previous_block['start_time']
+                else:
+                    # If the blocks are far apart, save the previous block and move to the next one
+                    combined_blocks.append(previous_block)
+                    previous_block = current_block.to_dict()
+            
+            # Add the last block after the loop
             combined_blocks.append(previous_block)
-            previous_block = current_block.to_dict()
-    
-    # Add the last block after the loop
-    combined_blocks.append(previous_block)
-    
-    # Convert the merged blocks back into a DataFrame
-    combined_blocks_df = pd.DataFrame(combined_blocks)
-    
-    # Second check for merging adjacent blocks in combined_blocks_df
-    final_combined_blocks = []
-    previous_block = combined_blocks_df.iloc[0].to_dict()
-    
-    # Apply additional check for merging based on both time and altitude gap
-    for idx, current_block in combined_blocks_df.iloc[1:].iterrows():
-        # Calculate the altitude gap and time gap
-        altitude_gap = abs(current_block['lower_bound'] - previous_block['upper_bound'])
-        time_gap = current_block['start_time'] - previous_block['end_time']
-        
-        # Check for overlap in the altitude ranges
-        overlap_check = (current_block['lower_bound'] >= previous_block['lower_bound']) and (current_block['lower_bound'] <= previous_block['upper_bound'])
-    
-        # Check if both the altitude gap, time gap, or overlap condition is met
-        if altitude_gap <= altitude_gap_threshold or overlap_check:
-            # Merge the blocks
-            previous_block['end_time'] = max(previous_block['end_time'], current_block['end_time'])
-            previous_block['start_time'] = min(previous_block['start_time'], current_block['start_time'])
-            previous_block['upper_bound'] = max(previous_block['upper_bound'], current_block['upper_bound'])
-            previous_block['lower_bound'] = min(previous_block['lower_bound'], current_block['lower_bound'])
             
-            # Recalculate the duration for the merged block
-            previous_block['duration'] = previous_block['end_time'] - previous_block['start_time']
-        else:
-            # Save the previous block and move to the next one
+            # Convert the merged blocks back into a DataFrame
+            combined_blocks_df = pd.DataFrame(combined_blocks)
+            
+            # Second check for merging adjacent blocks in combined_blocks_df
+            final_combined_blocks = []
+            previous_block = combined_blocks_df.iloc[0].to_dict()
+            
+            # Apply additional check for merging based on both time and altitude gap
+            for idx, current_block in combined_blocks_df.iloc[1:].iterrows():
+                # Calculate the altitude gap and time gap
+                altitude_gap = abs(current_block['lower_bound'] - previous_block['upper_bound'])
+                time_gap = current_block['start_time'] - previous_block['end_time']
+                
+                # Check for overlap in the altitude ranges
+                overlap_check = (current_block['lower_bound'] >= previous_block['lower_bound']) and (current_block['lower_bound'] <= previous_block['upper_bound'])
+            
+                # Check if both the altitude gap, time gap, or overlap condition is met
+                if altitude_gap <= altitude_gap_threshold or overlap_check:
+                    # Merge the blocks
+                    previous_block['end_time'] = max(previous_block['end_time'], current_block['end_time'])
+                    previous_block['start_time'] = min(previous_block['start_time'], current_block['start_time'])
+                    previous_block['upper_bound'] = max(previous_block['upper_bound'], current_block['upper_bound'])
+                    previous_block['lower_bound'] = min(previous_block['lower_bound'], current_block['lower_bound'])
+                    
+                    # Recalculate the duration for the merged block
+                    previous_block['duration'] = previous_block['end_time'] - previous_block['start_time']
+                else:
+                    # Save the previous block and move to the next one
+                    final_combined_blocks.append(previous_block)
+                    previous_block = current_block.to_dict()
+            
+            # Add the last block after the loop
             final_combined_blocks.append(previous_block)
-            previous_block = current_block.to_dict()
-    
-    # Add the last block after the loop
-    final_combined_blocks.append(previous_block)
-    
-    # Convert the final combined blocks back into a DataFrame
-    final_cloud_blocks = pd.DataFrame(final_combined_blocks)
+            
+            # Convert the final combined blocks back into a DataFrame
+            final_cloud_blocks = pd.DataFrame(final_combined_blocks)
 
-    # Add 'cloud_status' based on whether altitude and time fall within any blocked region (in the cloud or out of cloud)
-    df['cloud_status'] = 'Out-of-cloud'  # Default label
-    # Loop through each block and label altitudes as "In-cloud" if they fall within the block's range
-    for _, block in final_cloud_blocks.iterrows():
-        # Create a mask that checks both altitude and time conditions
-        mask = (
-            (df['GGALT'] >= block['lower_bound']) & (df['GGALT'] <= block['upper_bound']) &
-            (df['Time'] >= block['start_time']) & (df['Time'] <= block['end_time'])
-        )
+            # Add 'cloud_status' based on whether altitude and time fall within any blocked region (in the cloud or out of cloud)
+            df['cloud_status'] = 'Out-of-cloud'  # Default label
+            # Loop through each block and label altitudes as "In-cloud" if they fall within the block's range
+            for _, block in final_cloud_blocks.iterrows():
+                # Create a mask that checks both altitude and time conditions
+                mask = (
+                    (df['GGALT'] >= block['lower_bound']) & (df['GGALT'] <= block['upper_bound']) &
+                    (df['Time'] >= block['start_time']) & (df['Time'] <= block['end_time'])
+                )
+                
+                # Apply the 'In-cloud' label where the mask is True
+                df.loc[mask, 'cloud_status'] = 'In-cloud'
+            
+            # List of columns to remove
+            columns_to_remove = ['blocked','block_id']
+            # Drop the specified columns from df2
+            df = df.drop(columns=columns_to_remove)
         
-        # Apply the 'In-cloud' label where the mask is True
-        df.loc[mask, 'cloud_status'] = 'In-cloud'
-    
-    # List of columns to remove
-    columns_to_remove = ['blocked','block_id']
-    # Drop the specified columns from df2
-    df = df.drop(columns=columns_to_remove)
-
-    df['Location'] = 'Free'
-    
-    # Find the minimum in-cloud altitude
-    min_ic_alt = np.min(final_cloud_blocks['lower_bound'])-5
-    mask = df.GGALT < min_ic_alt
-    # Define 
-    df.loc[mask, 'Location'] = 'BL'
-
-    # Update the Location column based on the GGALT and cloud status
-    df.loc[df['GGALT'] < min_ic_alt, 'Location'] = 'BL'
-
-    # --- Add Location to final_cloud_blocks DataFrame ---
-    # Add 'Location' based on the minimum in-cloud altitude
-    final_cloud_blocks['Location'] = final_cloud_blocks['lower_bound'].apply(
-        lambda x: 'BL' if x < min_ic_alt else 'Free'
-    )
-        # Add 'Location' based on the minimum in-cloud altitude
-    combined_blocks_with_profiles['Location'] = combined_blocks_with_profiles['lower_bound'].apply(
-        lambda x: 'BL' if x < min_ic_alt else 'Free'
-    )
+            df['Location'] = 'Free'
+            
+            # Find the minimum in-cloud altitude
+            min_ic_alt = np.min(final_cloud_blocks['lower_bound'])-5
+            mask = df.GGALT < min_ic_alt
+            # Define 
+            df.loc[mask, 'Location'] = 'BL'
+        
+            # Update the Location column based on the GGALT and cloud status
+            df.loc[df['GGALT'] < min_ic_alt, 'Location'] = 'BL'
+        
+            # --- Add Location to final_cloud_blocks DataFrame ---
+            # Add 'Location' based on the minimum in-cloud altitude
+            final_cloud_blocks['Location'] = final_cloud_blocks['lower_bound'].apply(
+                lambda x: 'BL' if x < min_ic_alt else 'Free'
+            )
+                # Add 'Location' based on the minimum in-cloud altitude
+            combined_blocks_with_profiles['Location'] = combined_blocks_with_profiles['lower_bound'].apply(
+                lambda x: 'BL' if x < min_ic_alt else 'Free'
+            )
 
     # Sort the dataframe by Time for continuous time grouping
     df = df.sort_values(by='Time')
@@ -309,9 +326,9 @@ def assign_flight_type(df):
     df['block_id'] = df['block_id'].cumsum()
 
     Final_ds = {'DataFrame': df,
-            'flight_blocks': combined_blocks_with_profiles,
-            'cloud_blocks': final_cloud_blocks
-            }
+                'flight_blocks': combined_blocks_with_profiles,
+                'Cloud_blocks': final_cloud_blocks
+               }
     
     return Final_ds
 
@@ -464,8 +481,8 @@ def VAP_process_flight_data(df,i,dir):
         A DataFrame containing flight data with at least the following columns:
         - 'Time' (datetime): Time of each flight record.
         - 'GGALT' (float): Altitude of the aircraft.
-        - 'PLWCD_RWIO' (float): Cloud Droplet Probe LWC.
-        - 'CONCD_RWIO' (float): Cloud Droplet Probe Number Concentration.
+        - 'PLWCD_' (float): Cloud Droplet Probe LWC.
+        - 'CONCD_' (float): Cloud Droplet Probe Number Concentration.
 
     Returns:
     --------
@@ -492,11 +509,327 @@ def VAP_process_flight_data(df,i,dir):
     # Run block flight function to return list of Dataframes of "blocked" flight data
     flight_blocks = block_flight(df_mod)
     # Function to assign cloud type from the HCR data
-    flight_block_comp = assign_cloud_type_HCR(flight_blocks,dir,i)
+    # flight_block_comp = assign_cloud_type_HCR(flight_blocks,dir,i)
     
     # Plot time series of HCR defined cloud types  
     # plot_hcr_cloud_type(df_mod,flight_block_comp,i)
     return flight_blocks
+
+def select_ERA5_4flight(df):
+    # Define function to filter ERA5 files based on time
+    def get_matching_files(pattern, start_dt, end_dt):
+        file_list = glob.glob(pattern)
+        selected = []
+        for file in file_list:
+            time_strs = file.split('.')[-2].split('_')
+            file_start = datetime.datetime.strptime(time_strs[0], "%Y%m%d%H")
+            file_end = datetime.datetime.strptime(time_strs[1], "%Y%m%d%H")
+            if file_start <= end_dt and file_end >= start_dt:
+                selected.append(file)
+        return selected
+        
+    # Extract the times of the research flight
+    month, year = df.Time[0].month, df.Time[0].year
+    day_start,day_end = df.Time[0].day, df.Time.iloc[-1].day
+    start_hour, end_hour = df.Time[0].hour, df.Time.iloc[-1].hour
+    
+    # Select the latitude/longitude box to reduce size of era5 data
+    lat_max, lat_min = np.floor(df.GGLAT.min()), np.ceil(df.GGLAT.max())
+    lon_min, lon_max = np.floor(df.GGLON.min()), np.ceil(df.GGLON.max())
+    
+    # Flight start and end times
+    start_dt = datetime.datetime(year, month, day_start, start_hour) 
+    end_dt = datetime.datetime(year, month, day_end, end_hour)+datetime.timedelta(hours=1)
+    
+    # Make the yearmonth string for file selection
+    dir_date = f"{year}{month:02d}"
+    
+    # Load SST data
+    filepath="/glade/campaign/collections/rda/data/ds633.0/e5.oper.an.sfc/"
+    # # Construct the search pattern (SST)
+    path = f"{filepath}{dir_date}/*_sstk.*.nc"
+    file = get_matching_files(path, start_dt, end_dt)
+    ds_sst = xr.open_dataset(file[0])
+    
+    ds_sst = ds_sst.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    )
+    # Load 2m tempeature
+    path = f"{filepath}{dir_date}/*_2t.*.nc"
+    file = get_matching_files(path, start_dt, end_dt)
+    ds_2mt = xr.open_dataset(file[0])# <- Should work now
+    ds_2mt = ds_2mt.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    )
+    
+    # Load 10m wind speed (u and v components)
+    path = f"{filepath}{dir_date}/*_10u.*.nc"
+    file = get_matching_files(path, start_dt, end_dt)
+    ds_m10u = xr.open_dataset(file[0])# <- Should work now
+    ds_m10u = ds_m10u.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    )
+    path = f"{filepath}{dir_date}/*_10v.*.nc"
+    file = get_matching_files(path, start_dt, end_dt)
+    ds_m10v = xr.open_dataset(file[0])# <- Should work now
+    ds_m10v = ds_m10v.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    )
+    
+    ws = np.sqrt(ds_m10u.VAR_10U**2 + ds_m10v.VAR_10V**2)
+    wind_dir = (270 - np.degrees(np.arctan2(ds_m10v.VAR_10V, ds_m10u.VAR_10U))) % 360
+    
+    # Load w data for all pressure levels
+    filepath="/glade/campaign/collections/rda/data/ds633.0/e5.oper.an.pl/"
+    # # Construct the search pattern (SST)
+    path = f"{filepath}{dir_date}/*_w.*.nc"
+    files = get_matching_files(path, start_dt, end_dt)
+    ds_wpl = xr.open_mfdataset(files)# <- Should work now
+    
+    # Select w at 500 hPa
+    w_500 = ds_wpl.W.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    level=500
+    )
+    w_800 = ds_wpl.W.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    level=800
+    )
+    
+    # Load pressure level wind speed (u and v components)
+    path = f"{filepath}{dir_date}/*_u.*.nc"
+    file = get_matching_files(path, start_dt, end_dt)
+    ds_upl = xr.open_dataset(file[0])# <- Should work now
+    ds_upl = ds_upl.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    level=800,
+    )
+    path = f"{filepath}{dir_date}/*_v.*.nc"
+    file = get_matching_files(path, start_dt, end_dt)
+    ds_vpl = xr.open_dataset(file[0])# <- Should work now
+    ds_vpl = ds_vpl.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    level=800,
+    )
+    
+    ws800 = np.sqrt(ds_upl.U**2 + ds_vpl.V**2)
+    
+    wind_shear = ws800-ws
+    
+    # Load upper temperature data with select pressure levels
+    path = f"{filepath}{dir_date}/*_t.*.nc"
+    files = get_matching_files(path, start_dt, end_dt)
+    ds_tpl = xr.open_mfdataset(files)# <- Should work now
+    ds_tpl = ds_tpl.sel(
+    latitude=slice(lat_min, lat_max),  # Select latitudes within range
+    longitude=slice(lon_min, lon_max),  # Select longitudes within range
+    time=slice(start_dt, end_dt),
+    )
+    
+    # Calculate M-value
+    Rd = 287
+    Cp = 1005     
+    theta_sfc = ds_sst.SSTK*(1)**(Rd/Cp)
+    theta_800 = ds_tpl.T.sel(level=800)*(1013.25/800)**(Rd/Cp)
+    
+    M = theta_sfc.T - theta_800.T
+    M = M.transpose("time", "latitude", "longitude")
+    
+    dt = ds_2mt.VAR_2T - ds_sst.SSTK
+    
+    # Merge the dataset variables used later
+    ds = {
+    'deltaT': dt, 
+    'M': M,
+    'w_500': w_500,
+    'w_800': w_800,
+    'SST': ds_sst.SSTK,
+    'WS': ws,
+    'Wind_shear': wind_shear
+     }
+
+    return ds
+
+def collocate_ERA5_dat(ds, blocks):
+    # Create KDTree from ERA5 lat/lon grid
+    M, w_500, w_800, sst, dt, ws, wsh = ds['M'], ds['w_500'], ds['w_800'], ds['SST'], ds['deltaT'], ds['WS'], ds['Wind_shear']
+    lat_vals = w_500.latitude.values
+    lon_vals = w_500.longitude.values
+    lon_grid, lat_grid = np.meshgrid(lon_vals, lat_vals)
+    points = np.column_stack((lat_grid.ravel(), lon_grid.ravel()))
+    tree = cKDTree(points)
+    
+    era5_times = M.time.values.astype('datetime64[ns]')
+    
+    # "load" data to speed up code
+    M_loaded = M.transpose("time", "latitude", "longitude").compute()
+    w500_loaded = w_500.transpose("time", "latitude", "longitude").compute()
+    w800_loaded = w_800.transpose("time", "latitude", "longitude").compute()    
+    
+    # # Iterate through blocks
+    for val in blocks:
+        block_type = blocks[val]
+        
+        for i in range(len(block_type)):
+            block = block_type[i].copy()
+            # Drop rows with NaN in lat/lon
+            block = block.dropna(subset=['GGLAT', 'GGLON']).copy()
+            # print(i)
+            # Vectorized time and spatial nearest match
+            flight_times = block['Time'].astype('datetime64[ns]').values
+            flight_lats = block['GGLAT'].values
+            flight_lons = block['GGLON'].values
+            
+            # Nearest ERA5 time
+            time_indices = np.abs(era5_times[:, None] - flight_times).argmin(axis=0)
+            nearest_times = era5_times[time_indices]
+            
+            # Nearest ERA5 spatial point via KDTree
+            _, idxs = tree.query(np.column_stack((flight_lats, flight_lons)))
+            lat_idxs, lon_idxs = np.unravel_index(idxs, lat_grid.shape)
+            nearest_lats = lat_vals[lat_idxs]
+            nearest_lons = lon_vals[lon_idxs]
+            
+            # Unique key set for reuse
+            keys = list(zip(nearest_times, nearest_lats, nearest_lons))
+            unique_keys = list(set(keys))
+            
+            # Lookups for SST values
+            sst_lookup = {}
+            
+            for t, lat, lon in unique_keys:
+                try:
+                    # SST
+                    sst_val = sst.sel(time=t, latitude=lat, longitude=lon, method="nearest").values.item()
+                    sst_lookup[(t, lat, lon)] = sst_val
+                except Exception:
+                    sst_lookup[(t, lat, lon)] = np.nan
+    
+            # Assign back to DataFrame
+            block['ERA5_SST'] = [sst_lookup.get(k, np.nan) for k in keys]
+            
+            # M lookup is just the precomputed M values
+            M_lookup = {}
+            for t, lat, lon in unique_keys:
+                try:
+                    m_val = M_loaded.sel(time=t, latitude=lat, longitude=lon, method="nearest").values.item()
+                    M_lookup[(t, lat, lon)] = m_val
+                except Exception:
+                    M_lookup[(t, lat, lon)] = np.nan
+            block['M'] = [M_lookup.get(k, np.nan) for k in keys]
+            
+            # w_500 lookup
+            w500_lookup = {}
+            for t, lat, lon in unique_keys:
+                try:
+                    w_val = w500_loaded.sel(time=t, latitude=lat, longitude=lon, method="nearest").values.item()
+                    w500_lookup[(t, lat, lon)] = w_val
+                except Exception:
+                    w500_lookup[(t, lat, lon)] = np.nan
+            block['w500'] = [w500_lookup.get(k, np.nan) for k in keys]# Update the block
+            block_type[i] = block
+            
+            # w_800 lookup
+            w800_lookup = {}
+            for t, lat, lon in unique_keys:
+                try:
+                    w_val = w800_loaded.sel(time=t, latitude=lat, longitude=lon, method="nearest").values.item()
+                    w800_lookup[(t, lat, lon)] = w_val
+                except Exception:
+                    w800_lookup[(t, lat, lon)] = np.nan
+            block['w800'] = [w800_lookup.get(k, np.nan) for k in keys]# Update the block
+            block_type[i] = block
+            
+            # delta_T lookup 
+            dt_lookup = {}
+            for t, lat, lon in unique_keys:
+                try:
+                    dt_val = dt.sel(time=t, latitude=lat, longitude=lon, method="nearest").values.item()
+                    dt_lookup[(t, lat, lon)] = dt_val
+                except Exception:
+                    dt_lookup[(t, lat, lon)] = np.nan
+            block['deltaT'] = [dt_lookup.get(k, np.nan) for k in keys]# Update the block
+            block_type[i] = block
+            
+            # Wind_speed lookup 
+            ws_lookup = {}
+            for t, lat, lon in unique_keys:
+                try:
+                    ws_val = ws.sel(time=t, latitude=lat, longitude=lon, method="nearest").values.item()
+                    ws_lookup[(t, lat, lon)] = ws_val
+                except Exception:
+                    ws_lookup[(t, lat, lon)] = np.nan
+            block['Wind_sp'] = [ws_lookup.get(k, np.nan) for k in keys]# Update the block
+            block_type[i] = block
+    
+            # Wind shear lookup 
+            wsh_lookup = {}
+            for t, lat, lon in unique_keys:
+                try:
+                    wsh_val = wsh.sel(time=t, latitude=lat, longitude=lon, method="nearest").values.item()
+                    wsh_lookup[(t, lat, lon)] = wsh_val
+                except Exception:
+                    wsh_lookup[(t, lat, lon)] = np.nan
+            block['Wind_shear'] = [wsh_lookup.get(k, np.nan) for k in keys]# Update the block
+            block_type[i] = block
+            
+        blocks[val] = block_type
+        
+    return blocks
+
+def cloud_regime(fblks):
+    # Iterate through blocks
+    for val in fblks:
+        block_type = fblks[val]
+        for i in range(len(block_type)):
+            block = block_type[i].copy()
+            block['cloud_regime'] = pd.Series('Undetermined', index=block.index, dtype='object')
+            condition_cum = ((block['M'] > -7) & (block['Wind_shear'] < 6)) | ((block['M'] > -7) & (block['Wind_sp'] > 10))
+            condition_strcu = ((block['M'] <= -10) & (block['Wind_sp'] < 10)) | ((block['M'] <= -10) | (block['Wind_shear'] > 6))
+            # Assign values based on conditions
+            block.loc[condition_cum, 'cloud_regime'] = 'Open-Cell Cu'
+            block.loc[condition_strcu, 'cloud_regime'] = 'Stratiform'
+    
+            block_type[i] = block
+    
+        fblks[val] = block_type
+
+    return fblks
+
+def write_RF_nc(fblks_cr, rf):
+    combined = []
+    if isinstance(fblks_cr, dict):
+        for label, df_list in fblks_cr.items():
+            for i, df in enumerate(df_list):
+                df = df.copy()
+                df["flight"] = rf
+                df["block_label"] = label
+                df["block_index"] = i
+                combined.append(df)
+
+        df_all = pd.concat(combined, ignore_index=True)
+        df_all = df_all.set_index(["block_label", "block_index", "Time"])
+        ds = df_all.reset_index().to_xarray()
+
+        name = f"{rf}.nc"
+        ds.to_netcdf(name)
+        print(f"Wrote {name}")
 
 def plot_block_ts(dict,idx):
 
@@ -612,7 +945,7 @@ def plot_block_ts(dict,idx):
 
     # Save the figure
     rf_id = f"RF_{idx+1:02d}"
-    filename = f"SOCRATES_Altitude_Flight_Cloud_type_{rf_id}.png"
+    filename = f"SOCRATES_Altitude_Flight_Cloud_type_25Hz_{rf_id}.png"
     plt.savefig(filename, dpi=300, bbox_inches='tight')  # Save as PNG with high resolution
 
    
