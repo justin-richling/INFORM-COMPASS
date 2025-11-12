@@ -73,3 +73,28 @@ Edit the iopfile dir in create_scamtest.F2000.ne3_ne3_mg37.005.scm.new.cold_off.
 ```
 
 ...Now I just need to know how to look at what I just ran (-:
+
+
+# Create Nudged IOP forcing using CAM for use with SCAM
+This procedure will generating IOP forcing data associated with the dates and area of the SOCRATES field campaign to use with SCAM. The first experiment will provide initial conditions that approximates the state of the atmosphere at daily time intervals throught the period of the SOCRATES field campaign. The ERA5 reanalysis data will be used to nudge the T,U,V and Q fields for the initial CAM run. The second experiment will also be a full 3d cam run which uses the initial condition/restart boundary data along with the CAMIOP and windowing capability of the nudging functionality to generate CAM IOP forcing that can be used with SCAM to rerun the state of any individual column. The third experiment runs the single column version of CAM using the initial condition data along with the IOP forcing to rerun a specific column of the atmosphere during the SOCRATES period. The output of the SCAM run can be compared to the same column of the initial CAM run to see how the model atmosphere evolves (away?) from the nudged (observed) atmospheric state.  Many SCAM runs can be made to analyze the physics processes and modify the parameterizations to help improve the prognosed state.
+
+There are three scripts for making these runs under the SCAM_scripts directory:
+	* First: CAM6 run to create a ground truth dataset that is nudged to ERA5 reanalysis                 
+	    -  INFORM-COMPASS-cookbook_JT.110625/SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
+	* Second: CAM6 run(s) )to generate CAM IOP data. CAM will nudge to ERA5 reanalysis outside the SOCRATES area 
+	    -  INFORM-COMPASS-cookbook_JT.110625/SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
+	* Third: single column atmosphere (SCAM) run(s) using the generated CAM IOP data.
+	    -  INFORM-COMPASS-cookbook_JT.110625/SCAM_scripts/create_CAM6_ne30_SCAM_RUN
+
+These experiments should be analyzed and improved through several iterations.  Some items which can be considered
+	* How long a spin up is needed to bring the CAM into a quasi equilibrated state for the SOCRATES start dates?  Our first run started 2 weeks before SOCRATES start.
+	* What model variables should be nudged and what nuding parameters work best to achieve a state that is close to the obs but not too far from CAM equilibrium
+	    -  Exp. 1 and 2 used 6 hour nudging on T,U,V, and Q. Should we just be nudging with T,U, and V?
+		-  Exp. 1 is a global nudge to bring the SOCRATES area close to the reanalysis state
+		-  Exp. 2 is nudged outside the SOCRATES region using the windowing feature of CAM nudging to allow the physics parameterizations in the SOCRATES area to evolve freely
+    * How long is the observed state maintained inside the windowed area during the SOCRATES period?
+		-  Do we need to use initial nudged IC data before each flight?  How quickly does the model initial state degrade for the various observed weather regimes?
+	* SCAM only works with boundary data on the dynamics grid.  The physics grid can't be used.  I interpolated Isla's ne30pg3 ERA forcing to the ne30np4 grid but it might be better to have Isla regenerate the forcing data for the ne30np4 grid directly.
+    * How close is the nudged CAM state to the ERA reanalysis?
+
+
