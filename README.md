@@ -57,4 +57,13 @@ To create a new environment.yml file (if we ever want to update what is stored w
 > conda env export --no-builds -n npl-<year> > environment.yml
 ```
 
-...Now that my environment is all set up, I need to figure out what to run (-:
+### Launch a jupyter environment in your local browser
+In order to instantiate a jupyter-lab instance, you will need to access derecho using VNC, FastX (https://fastx.ucar.edu:3300),
+ or via jupyterhub.hpc.ucar.edu. Using this last option:
+* In the browser on your local maching, enter the URL: ```jupyterhub.hpc.ucar.edu```
+* Click the Available NCAR Resources option ```Production```
+* Login with your standard Duo credentials and respond to the Duo push notification
+* Start a server if you don't already have one running
+* Select ```derecho``` and click ```start```
+* You will see that you are in your home directory on the left. Navigate to your INFORM-COMPASS-cookbook checkout.
+* Click on one of the ipynb files to view that notebook.
