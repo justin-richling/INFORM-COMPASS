@@ -6,8 +6,8 @@
 
 ### Full path of cesm source code and case (output) directories (see examples)
 
-set CESMDIR=/glade/campaign/cgd/amp/$USER/collections/cam6_4_120_ESCOMP
-set CASEDIR=/glade/campaign/cgd/amp/$USER/cases
+set CESMDIR=${HOME}/collections/cam6_4_120_ESCOMP
+set CASEDIR=${SCRATCH}/cases
 
 ### Case Name
 
@@ -35,8 +35,7 @@ set REST_OPTION=${STOP_OPTION}
 set REST_N=${STOP_N}
 set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp
 set RUN_REFDATE=2018-01-18
-set RUN_REFDIR=/glade/campaign/cgd/amp/jet/cases/${RUN_REFCASE}/run
-#set RUN_REFDIR=/glade/derecho/scratch/jet/archive/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100/rest/2018-02-19-00000
+set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run
 set GET_REFCASE=TRUE
 set PTS_LON=276.7082039324993
 set PTS_LAT=44.80320177421346
@@ -71,10 +70,7 @@ set CASENAME=${CASETITLE}.${COMPSET_TITLE}.${RES}.${CASEID}.${EXP}
 #------------------
 # create case
 #------------------
-#Loop over different timescales of nudging                                                                                        
-#nudge_tscale=( 06 12 24 48 )
 
-#$CESMDIR/cime/scripts/create_newcase -compset $COMPSET  -res $RES -compiler $COMPILER -case $CASEDIR/$CASEAMNE  -pecount ${PES} --run-unsupported
 $CESMDIR/cime/scripts/create_newcase -compset $COMPSET  -res $RES -compiler $COMPILER -case $CASEDIR/$CASENAME  --run-unsupported --walltime ${WALLTIME} --queue ${QUEUE} ${PES} 
 
 cd  $CASEDIR/$CASENAME
@@ -113,13 +109,6 @@ set RUNDIR=${CASEDIR}/${CASENAME}/run
 # User should set the Lat and Lon for SCAM
 ./xmlchange PTS_LON=${PTS_LON}
 ./xmlchange PTS_LAT=${PTS_LAT}
-
-#./xmlchange STOP_OPTION=ndays,STOP_N=2,DOUT_S=FALSE,RUN_STARTDATE=2014-01-01
-#./xmlchange LND_DOMAIN_FILE='domain.lnd.ne3np4_gx3v7.230718.nc'
-#./xmlchange BFBFLAG='TRUE'
-
-### DEBUG
-### ./xmlchange DEBUG='TRUE'
 
 #------------------
 # Setup Case
