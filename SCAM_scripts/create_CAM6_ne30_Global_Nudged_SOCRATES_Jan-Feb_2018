@@ -6,8 +6,8 @@
 
 ### Full path of cesm source code and case (output) directories (see examples)
 
-set CESMDIR=/glade/campaign/cgd/amp/$USER/collections/cam6_4_120_ESCOMP
-set CASEDIR=/glade/campaign/cgd/amp/$USER/cases
+set CESMDIR=${HOME}/collections/cam6_4_120_ESCOMP
+set CASEDIR=${SCRATCH}/cases
 
 ### Case Name
 
@@ -18,7 +18,6 @@ set CASEID=SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist
 set WALLTIME=04:00:00
 set RES=ne30_ne30_mg17
 set COMPSET=FHIST_BGC
-#set COMPSET=F2000climo
 set COMPILER=intel
 set QUEUE=main
 #set QUEUE=develop
@@ -56,10 +55,7 @@ set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
 #------------------
 # create case
 #------------------
-#Loop over different timescales of nudging                                                                                        
-#nudge_tscale=( 06 12 24 48 )
 
-#$CESMDIR/cime/scripts/create_newcase -compset $COMPSET  -res $RES -compiler $COMPILER -case $CASEDIR/$CASEAMNE  -pecount ${PES} --run-unsupported
 $CESMDIR/cime/scripts/create_newcase -compset $COMPSET  -res $RES -compiler $COMPILER -case $CASEDIR/$CASENAME  --run-unsupported --walltime ${WALLTIME} --queue ${QUEUE} ${PES} 
 
 cd  $CASEDIR/$CASENAME
@@ -80,24 +76,12 @@ set RUNDIR=${CASEDIR}/${CASENAME}/run
 ./xmlchange REST_OPTION=ndays
 ./xmlchange REST_N=1
 ./xmlchange JOB_WALLCLOCK_TIME=${WALLTIME} --subgroup=case.run
-#./xmlchange RUN_REFDATE=2018-01-01
-#./xmlchange RUN_REFCASE=b.e21.BSSP370smbb.f09_g17.LE2-1011.001
-#./xmlchange RUN_REFDIR=/glade/campaign/cgd/cesm/CESM2-LE/restarts/b.e21.BSSP370smbb.f09_g17.LE2-1011.001/rest/2018-01-01-00000/
-#./xmlchange GET_REFCASE=True
  
 ### Append to CAM configure options
 ./xmlchange ROF_NCPL=`./xmlquery  --value "ATM_NCPL"`
 ./xmlchange GLC_NCPL=`./xmlquery  --value "ATM_NCPL"`
 ./xmlchange GMAKE_J=32
 ./xmlchange --append CAM_CONFIG_OPTS=-cosp
-
-#./xmlchange STOP_OPTION=ndays,STOP_N=2,DOUT_S=FALSE,RUN_STARTDATE=2014-01-01
-#./xmlchange LND_DOMAIN_FILE='domain.lnd.ne3np4_gx3v7.230718.nc'
-#./xmlchange --append CAM_CONFIG_OPTS='-camiop'
-#./xmlchange BFBFLAG='TRUE'
-
-### DEBUG
-### ./xmlchange DEBUG='TRUE'
 
 #------------------
 # Setup Case

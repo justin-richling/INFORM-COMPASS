@@ -6,8 +6,8 @@
 
 ### Full path of cesm source code and case (output) directories (see examples)
 
-set CESMDIR=/glade/campaign/cgd/amp/$USER/collections/cam6_4_120_ESCOMP
-set CASEDIR=/glade/campaign/cgd/amp/$USER/cases
+set CESMDIR=${HOME}/collections/cam6_4_120_ESCOMP
+set CASEDIR=${SCRATCH}/cases
 
 ### Case Name
 
@@ -32,7 +32,7 @@ set REST_OPTION=${STOP_OPTION}
 set REST_N=${STOP_N}
 set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp
 set RUN_REFDATE=2018-01-18
-set RUN_REFDIR=/glade/campaign/cgd/amp/jet/cases/${RUN_REFCASE}/run
+set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run
 set GET_REFCASE=TRUE
 
 ### SOCRATES FLIGHT TIMES
