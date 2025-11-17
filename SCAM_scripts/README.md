@@ -1,4 +1,4 @@
-v# Running SCAM
+# Running SCAM
 Running SCAM on the Derecho supercomputer requires access to CPU core-hours. You will run two files (**after making the changes below**):
 * First run create_scamtest.F2000.ne3_ne3_mg37.005.**new**.cold_off.derecho
 * Then run create_scamtest.F2000.ne3_ne3_mg37.005.**scm.new**.cold_off.derecho
