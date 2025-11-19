@@ -18,6 +18,11 @@ See https://ncar-hpc-docs.readthedocs.io/en/latest/getting-started/accounts/duo/
 ```bash
 > git clone http://github.com/NCAR/INFORM-COMPASS-cookbook
 ```
+or if you already cloned the repo, pull the latest updates
+```bash
+> cd INFORM-COMPASS-cookbook/
+> git pull
+```
 
 ### Set up your environment
 Load some standard modules.  For more information, see https://ncar-hpc-docs.readthedocs.io/en/latest/environment-and-software/user-environment/modules/
