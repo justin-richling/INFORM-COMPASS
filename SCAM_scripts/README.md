@@ -1,12 +1,17 @@
 # INFORM-COMPASS-cookbook - SCAM
 
-## Running SCAM
-Running SCAM on the Derecho supercomputer requires access to CPU core-hours. You will run two files (**after making the changes below**):
+## Introduction
+SCAM, the [Single Column Atmosphere Model](https://www.cesm.ucar.edu/models/simple/scam) is a single column model version of the [Community Atmospheric Model (CAM)](https://www.cesm.ucar.edu/models/cam), a global atmosphere model developed at NSF NCAR for the weather and climate research communities.
+
+## Running SCAMtest
+SCAM can be run from the Derecho supercomputer at NCAR. Information on accessing Derecho is available [here](https://github.com/NCAR/INFORM-COMPASS-cookbook/tree/main#obtain-access-to-glade-on-derecho).
+
+You will run two files (**after making the changes below**):
 * First run create_scamtest.F2000.ne3_ne3_mg37.005.**new**.cold_off.derecho
 * Then run create_scamtest.F2000.ne3_ne3_mg37.005.**scm.new**.cold_off.derecho
 
 ### See if there is a project/account available for your use
-You can find out which projects/accounts are linked to your login via the Systems Accounting Manager webpage
+Running SCAM on the Derecho supercomputer requires access to CPU core-hours.  You can find out which projects/accounts are linked to your login via the Systems Accounting Manager webpage
 
 &nbsp;&nbsp;&nbsp;&nbsp;[https://sam.ucar.edu](https://sam.ucar.edu)
 
@@ -78,18 +83,24 @@ Edit the iopfile dir in create_scamtest.F2000.ne3_ne3_mg37.005.scm.new.cold_off.
 
 
 ## Create Nudged IOP forcing using CAM for use with SCAM
-This procedure will generating IOP forcing data associated with the dates and area of the SOCRATES field campaign to use with SCAM. The first experiment will provide initial conditions that approximates the state of the atmosphere at daily time intervals throught the period of the SOCRATES field campaign. The ERA5 reanalysis data will be used to nudge the T,U,V and Q fields for the initial CAM run. The second experiment will also be a full 3d cam run which uses the initial condition/restart boundary data along with the CAMIOP and windowing capability of the nudging functionality to generate CAM IOP forcing that can be used with SCAM to rerun the state of any individual column. The third experiment runs the single column version of CAM using the initial condition data along with the IOP forcing to rerun a specific column of the atmosphere during the SOCRATES period. The output of the SCAM run can be compared to the same column of the initial CAM run to see how the model atmosphere evolves (away?) from the nudged (observed) atmospheric state.  Many SCAM runs can be made to analyze the physics processes and modify the parameterizations to help improve the prognosed state.
+This procedure will generating IOP forcing data associated with the dates and area of the SOCRATES field campaign to use with SCAM.
+87a88,93
+* The first experiment will provide initial conditions that approximates the state of the atmosphere at daily time intervals throught the period of the SOCRATES field campaign.  The ERA5 reanalysis data will be used to nudge the thermodynamic vertical profiles via the T,U,V and Q fields for the initial CAM run.
+* The second experiment will also be a full 3d cam run which uses the initial condition/restart boundary data along with the CAMIOP and windowing capability of the nudging functionality to generate CAM IOP forcing that can be used with SCAM to rerun the state of any individual column.
+* The third experiment runs the single column version of CAM using the initial condition data along with the IOP forcing to rerun a specific column of the atmosphere during the SOCRATES period.
+
+The output of the SCAM run can be compared to the same column of the initial CAM run to see how the model atmosphere evolves (away?) from the nudged (observed) atmospheric state.  Many SCAM runs can be made to analyze the physics processes and modify the parameterizations to help improve the prognosed state.
 
 There are three scripts for making these runs under the SCAM_scripts directory:
 * First: CAM6 run to create a ground truth dataset that is nudged to ERA5 reanalysis
-  -  SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
-* Second: CAM6 run(s) )to generate CAM IOP data. CAM will nudge to ERA5 reanalysis outside the SOCRATES area
-  -  SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
+  >  SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
+* Second: CAM6 run(s) to generate CAM IOP data. CAM will nudge to ERA5 reanalysis outside the SOCRATES area
+  >  SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
 * Third: single column atmosphere (SCAM) run(s) using the generated CAM IOP data.
-  -  SCAM_scripts/create_CAM6_ne30_SCAM_RUN
+  >  SCAM_scripts/create_CAM6_ne30_SCAM_RUN
 
 
-The steps outlined below place the CAM code and COMPASS-cookbook underneath your $HOME directory.  The 3 CAM/SCAM cases that are created from the cookbook scripts are located under your scratch space on Derecho.  The CAM experiments will generated a terebyte of data which can be handled by $SCRATCH.  These initial cases are writing out a lot of data for analysis as we are fine tuning our procedures. The final requirements will be much less. Since the SCAM experiment is just a single column it always puts out much smaller data sets and can be easily run on any filesystem.
+The steps outlined below place the CAM code and COMPASS-cookbook underneath your $HOME directory.  The 3 CAM/SCAM cases that are created from the cookbook scripts are located under your scratch space on Derecho.  The CAM experiments will generated a terabyte of data which can be handled by $SCRATCH.  These initial cases are writing out a lot of data for analysis as we are fine tuning our procedures. The final requirements will be much less. Since the SCAM experiment is just a single column it always puts out much smaller data sets and can be easily run on any filesystem.
 
 1. Create the collections and case directories and check out your own version of the CAM code.
 ```tcsh
@@ -122,10 +133,20 @@ set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
 cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 qcmd -- ./create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
 ```
-5. After the first experiment finishes, you should have output data underneath $SCRATCH/your_case_name/run.  See what you have!
+If you have not already, you will need to set a PBS_ACCOUNT environment variable in your $HOME/.tcshrc file to provide your project number.
+```tcsh
+> vi ~/.tcshrc
+  > setenv PBS_ACCOUNT "P########"
+> source ~/.tcshrc (just needed the first time, will be run automatically each time you login in the future)
+```
+5. After the first experiment finishes, you should have output data underneath $SCRATCH/cases/your_case_name/run.  See what you have!
 ```tcsh
 cd /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp/run
 ls -al *.cam.h*
+```
+As usual, you can check the status with:
+```tcsh
+qstatu -u <YOUR_USERNAME>
 ```
 6. Set up the second experiment to generate the IOP data for the SCAM run.
 *  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variable are set for the first SOCRATES flight Rf01 that began Jan 18 2018.
