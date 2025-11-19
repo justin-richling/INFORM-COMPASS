@@ -1,19 +1,21 @@
-# Running SCAM
+# INFORM-COMPASS-cookbook - SCAM
+
+## Running SCAM
 Running SCAM on the Derecho supercomputer requires access to CPU core-hours. You will run two files (**after making the changes below**):
 * First run create_scamtest.F2000.ne3_ne3_mg37.005.**new**.cold_off.derecho
 * Then run create_scamtest.F2000.ne3_ne3_mg37.005.**scm.new**.cold_off.derecho
 
-## See if there is a project/account available for your use
+### See if there is a project/account available for your use
 You can find out which projects/accounts are linked to your login via the Systems Accounting Manager webpage
 
 &nbsp;&nbsp;&nbsp;&nbsp;[https://sam.ucar.edu](https://sam.ucar.edu)
 
 or from the command line while logged into Derecho by providing a bogus project to the qinteractive command
-```bash
+```tcsh
 > qinteractive -A P99999999 @derecho
 ```
 The command will return a list of available accounts:
-```bash
+```tcsh
 qsub: Invalid account for CPU usage, available accounts:
 Project, Status, Active
 Pxxxxxxxx, Normal, True
@@ -26,9 +28,9 @@ Edit the two SCAM .derecho files and add your project to the create_newcase line
 
 > $CESMDIR/cime/scripts/create_newcase -compset $COMPSET  **--project Pxxxxxxxx** -res $RES -compiler $COMPILER -case $CASEDIR/$CASENAME  -pecount ${PES} --run-unsupported
 
-## Create a scratch directory
+### Create a scratch directory
 You will need to configure a scratch directory where SCAM can write files. Each Derecho user should have a /glade/derecho/scratch directory. Create a scam dir under your scratch dir.
-```bash
+```tcsh
 > ls /glade/derecho/scratch/<YOUR_USERNAME>
 > mkdir /glade/derecho/scratch/<YOUR_USERNAME>/scam
 ```
@@ -36,29 +38,29 @@ Now modify the SCAM scripts to point to this directory.  Edit the two SCAM .dere
 
 > set CASEDIR=/glade/derecho/scratch/<YOUR_USERNAME>/scam
 
-## Modify the scripts to point to the CESM collection directory
+### Modify the scripts to point to the CESM collection directory
 These collections are currently stored under John Truesdale's campaign dir so we are using that. **(What do we want to do here long-term?)**  Edit the SCAM .derecho scripts to set this directory.
 
 > set CESMDIR=/glade/campaign/cgd/amp/jet/collections/$CAMDIRNAME
 
-## Run the first file
+### Run the first file
 **Describe what this file does here**
-```bash
+```tcsh
 > ./create_scamtest.F2000.ne3_ne3_mg37.005.new.cold_off.derecho
 ```
 
-### To check the status of the run:
-```bash
+#### To check the status of the run:
+```tcsh
 more CaseStatus
 -or-
 qstat -u <YOUR_USERNAME>
 ```
 
-## Run the second file
+### Run the second file
 **Describe what this file does here**
 
 Once the first run completes, copy the created netCDF file from the scratch scam run dir to just under scratch/<YOUR_USERNAME>. The file path is too long to access it from it's original directory.
-```bash
+```tcsh
 > cp /glade/derecho/scratch/<YOUR_USERNAME>/scam/scamtest.F2000.ne3_ne3_mg37.005.new.cold_off/run/scamtest.F2000.ne3_ne3_mg37.005.new.cold_off.cam.h1i.0001-01-01-00000.nc /glade/derecho/scratch/<YOUR_USERNAME>/.
 ```
 
@@ -66,16 +68,16 @@ Edit the iopfile dir in create_scamtest.F2000.ne3_ne3_mg37.005.scm.new.cold_off.
 
 > iopfile ='/glade/derecho/scratch/<YOUR_USERNAME>/scamtest.F2000.ne3_ne3_mg37.005.new.cold_off.cam.h1i.0001-01-01-00000.nc'
 
-### Run the file
+#### Run the file
 
-```bash
+```tcsh
 > ./create_scamtest.F2000.ne3_ne3_mg37.005.scm.new.cold_off.derecho
 ```
 
 ...Now I just need to know how to look at what I just ran (-:
 
 
-# Create Nudged IOP forcing using CAM for use with SCAM
+## Create Nudged IOP forcing using CAM for use with SCAM
 This procedure will generating IOP forcing data associated with the dates and area of the SOCRATES field campaign to use with SCAM. The first experiment will provide initial conditions that approximates the state of the atmosphere at daily time intervals throught the period of the SOCRATES field campaign. The ERA5 reanalysis data will be used to nudge the T,U,V and Q fields for the initial CAM run. The second experiment will also be a full 3d cam run which uses the initial condition/restart boundary data along with the CAMIOP and windowing capability of the nudging functionality to generate CAM IOP forcing that can be used with SCAM to rerun the state of any individual column. The third experiment runs the single column version of CAM using the initial condition data along with the IOP forcing to rerun a specific column of the atmosphere during the SOCRATES period. The output of the SCAM run can be compared to the same column of the initial CAM run to see how the model atmosphere evolves (away?) from the nudged (observed) atmospheric state.  Many SCAM runs can be made to analyze the physics processes and modify the parameterizations to help improve the prognosed state.
 
 There are three scripts for making these runs under the SCAM_scripts directory:
@@ -90,7 +92,7 @@ There are three scripts for making these runs under the SCAM_scripts directory:
 The steps outlined below place the CAM code and COMPASS-cookbook underneath your $HOME directory.  The 3 CAM/SCAM cases that are created from the cookbook scripts are located under your scratch space on Derecho.  The CAM experiments will generated a terebyte of data which can be handled by $SCRATCH.  These initial cases are writing out a lot of data for analysis as we are fine tuning our procedures. The final requirements will be much less. Since the SCAM experiment is just a single column it always puts out much smaller data sets and can be easily run on any filesystem.
 
 1. Create the collections and case directories and check out your own version of the CAM code.
-```bash
+```tcsh
 mkdir -p /glade/derecho/scratch/$USER/cases
 mkdir -p $HOME/collections
 cd $HOME/collections
@@ -100,7 +102,7 @@ git checkout compass
 ./bin/git-fleximod update
 ```
 2. Checkout the COMPASS cookbook repository.
-```bash
+```tcsh
 cd $HOME/collections
 git clone https://github.com/NCAR/INFORM-COMPASS-cookbook.git
 cd INFORM-COMPASS-cookbook/SCAM_scripts
@@ -116,12 +118,12 @@ cd INFORM-COMPASS-cookbook/SCAM_scripts
 set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
 
 4. Run the first globally nudged experiment.
-```bash
+```tcsh
 cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 qcmd -- ./create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
 ```
 5. After the first experiment finishes, you should have output data underneath $SCRATCH/your_case_name/run.  See what you have!
-```bash
+```tcsh
 cd /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp/run
 ls -al *.cam.h*
 ```
@@ -139,7 +141,7 @@ set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run
 set GET_REFCASE=TRUE
 
 7. Run the second experiment to generate IOP data for SCAM.
-```bash
+```tcsh
 cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 qcmd -- ./create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
 ```
@@ -147,7 +149,7 @@ qcmd -- ./create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
 * Copy the IOP file from exp 2 for the correct dates to $SCRATCH and modify the CAM namelist variable iopfile to point to the copied IOP file.
 * modify create_CAM6_ne30_SCAM_RUN script to set REFCASE variables, paths, and dates as done for step 6. 
 * set PTS_LAT and PTS_LON variables in the script to point to the column you would like to simulate.  NOTE the PTS_LAT and PTS_LON should point to a column in SOCRATES area these are not.  I'll have to rerun with something along the RF01 flight path.
-```bash
+```tcsh
 cp /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQwindow_withCOSP_tau6h_3days_camiop.rf01.cosp.cam.h0i.2018-01-18-00000.nc /glade/derecho/scratch/$USER/r01.IOP.nc'
 cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 emacs create_CAM6_ne30_SCAM_RUN
@@ -160,7 +162,7 @@ set PTS_LON=276.7082039324993
 set PTS_LAT=44.80320177421346
 
 9. Run SCAM
-```bash
+```tcsh
 cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 qcmd -- ./create_CAM6_ne30_SCAM_RUN
 ```
