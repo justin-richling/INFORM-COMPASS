@@ -1,6 +1,3 @@
-
-<img align="left" width="175" height="175" src="/{{ site.baseurl }}/assets/INFORM_logo.png">
-
 # INtegrating Field Obserations and Research Models
 
 ### an NSF NCAR Director's Office Initiative
