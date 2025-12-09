@@ -1,0 +1,86 @@
+body {
+  background: white;
+  color: black;
+  margin: 2em;
+  margin-left: 3em;
+}
+
+h1, h2 {
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.3em;
+}
+
+h4 {
+  font-size: 1.2em;
+}
+
+h1, h2, h3, h4 {
+  font-style: normal;
+  font-weight: normal;
+  color: #3860B0; /* Blue color for headings */
+}
+
+span.runin {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #3860B0;
+}
+
+a:link {
+  color: navy;
+}
+
+a:visited {
+  color: #386090;
+}
+
+li.toc {
+  list-style: none;
+  padding: .1em;
+}
+
+kbd.att {
+  font-weight: normal;
+  color: blue;
+}
+
+div.example {
+  margin-left: 3em;
+  margin-right: 3em;
+}
+
+div.definition {
+  margin-left: 1em;
+}
+
+div.sidebar {
+  margin-left: 50px;
+  margin-right: 50px;
+  padding: 20px;
+  background-color: #f5deb4; /* Tan/beige background for sidebars */
+}
+
+pre.CDL {
+  color: brown;
+}
+
+table {
+  padding: .25em;
+}
+
+span.new {
+  background-color: #FF6666;
+}
+
+span.old {
+  background-color: #FFFF88;
+  text-decoration: line-through;
+}
+
+span.comment {
+  background-color: #88FF88;
+  font-style: italic;
+}
