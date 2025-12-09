@@ -54,6 +54,7 @@ Before you begin, you may find it useful to review the [SCAM configuration]({{ s
  * SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
  * SCAM_scripts/create_CAM6_ne30_SCAM_RUN
 
+
 1. The case title is set in the scripts using a combination of the model resolution, compset and other specifics about the experiment.  If you would like to rename the case for this experiment then edit the following line to set CASENAME as you wish.  The script will stop if you try to overwrite a previous case.
 ```tcsh
  set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
@@ -80,14 +81,14 @@ If you have not already, you will need to set a PBS_ACCOUNT environment variable
 1. Set up the second experiment to generate the IOP data for the SCAM run.
 *  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variable are set for the first SOCRATES flight Rf01 that began Jan 18 2018.
 
-   > set RUN_STARTDATE=2018-01-18
-   > set STOP_OPTION=ndays
-   > set STOP_N=3
-   > set REST_OPTION=${STOP_OPTION}
-   > set REST_N=${STOP_N}
-   > set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp
-   > set RUN_REFDATE=2018-01-18
-   > set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run
+   > set RUN_STARTDATE=2018-01-18 <br>
+   > set STOP_OPTION=ndays <br>
+   > set STOP_N=3 <br>
+   > set REST_OPTION=${STOP_OPTION} <br>
+   > set REST_N=${STOP_N} <br>
+   > set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp <br>
+   > set RUN_REFDATE=2018-01-18 <br>
+   > set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run <br>
    > set GET_REFCASE=TRUE
 
 1. Run the second experiment to generate IOP data for SCAM.
@@ -100,6 +101,7 @@ If you have not already, you will need to set a PBS_ACCOUNT environment variable
 * Copy the IOP file from exp 2 for the correct dates to $SCRATCH and modify the CAM namelist variable iopfile to point to the copied IOP file.
 * modify create_CAM6_ne30_SCAM_RUN script to set REFCASE variables, paths, and dates as done for step 6.
 * set PTS_LAT and PTS_LON variables in the script to point to the column you would like to simulate.  NOTE the PTS_LAT and PTS_LON should point to a column in SOCRATES area these are not.  I'll have to rerun with something along the RF01 flight path.
+
 ```tcsh
 > cp /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQwindow_withCOSP_tau6h_3days_camiop.rf01.cosp.cam.h0i.2018-01-18-00000.nc /glade/derecho/scratch/$USER/r01.IOP.nc'
 > cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
@@ -109,7 +111,7 @@ If you have not already, you will need to set a PBS_ACCOUNT environment variable
 iopfile                = '/glade/derecho/scratch/jet/rf01.IOP.nc'
 * modify PTS_LAT and PTS_LON to point to the column you want to simulate
 
-   > set PTS_LON=276.7082039324993
+   > set PTS_LON=276.7082039324993 <br>
      set PTS_LAT=44.80320177421346
 
 1. Run SCAM
