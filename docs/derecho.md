@@ -1,3 +1,9 @@
+---
+layout: default # Tells Jekyll to wrap this content with _layouts/default.html
+title: derecho
+permalink: /derecho/
+---
+
 # Accessing Derecho
 The Jupyter Notebooks and SCAM scripts available in this repo can be run from /glade on Derecho. If you are not already set up, follow the steps below to gain access and configure your environment.
 
