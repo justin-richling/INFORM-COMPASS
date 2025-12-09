@@ -101,14 +101,15 @@ If you have not already, you will need to set a PBS_ACCOUNT environment variable
 * Copy the IOP file from exp 2 for the correct dates to $SCRATCH and modify the CAM namelist variable iopfile to point to the copied IOP file.
 * modify create_CAM6_ne30_SCAM_RUN script to set REFCASE variables, paths, and dates as done for step 6.
 * set PTS_LAT and PTS_LON variables in the script to point to the column you would like to simulate.  NOTE the PTS_LAT and PTS_LON should point to a column in SOCRATES area these are not.  I'll have to rerun with something along the RF01 flight path.
-
 ```tcsh
 > cp /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQwindow_withCOSP_tau6h_3days_camiop.rf01.cosp.cam.h0i.2018-01-18-00000.nc /glade/derecho/scratch/$USER/r01.IOP.nc'
 > cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 > emacs create_CAM6_ne30_SCAM_RUN
 ```
 * modify the following line to point to your iop file
-iopfile                = '/glade/derecho/scratch/jet/rf01.IOP.nc'
+
+   > iopfile = '/glade/derecho/scratch/jet/rf01.IOP.nc'
+
 * modify PTS_LAT and PTS_LON to point to the column you want to simulate
 
    > set PTS_LON=276.7082039324993 <br>
