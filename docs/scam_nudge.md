@@ -16,45 +16,52 @@ The output of the SCAM run can be compared to the same column of the initial CAM
 
 There are three scripts for making these runs under the SCAM_scripts directory:
 * First: CAM6 run to create a ground truth dataset that is nudged to ERA5 reanalysis
-  >  SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
+```tcsh
+>  SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
+```
 * Second: CAM6 run(s) to generate CAM IOP data. CAM will nudge to ERA5 reanalysis outside the SOCRATES area
-  >  SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
+```tcsh
+>  SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
+```
 * Third: single column atmosphere (SCAM) run(s) using the generated CAM IOP data.
-  >  SCAM_scripts/create_CAM6_ne30_SCAM_RUN
-
+```tcsh
+>  SCAM_scripts/create_CAM6_ne30_SCAM_RUN
+```
 
 The steps outlined below place the CAM code and COMPASS-cookbook underneath your $HOME directory.  The 3 CAM/SCAM cases that are created from the cookbook scripts are located under your scratch space on Derecho.  The CAM experiments will generated a terabyte of data which can be handled by $SCRATCH.  These initial cases are writing out a lot of data for analysis as we are fine tuning our procedures. The final requirements will be much less. Since the SCAM experiment is just a single column it always puts out much smaller data sets and can be easily run on any filesystem.
 
+Before you begin, you may find it useful to review the [SCAM configuration]({{ site.baseurl }}/scam/) page.
+
 1. Create the collections and case directories and check out your own version of the CAM code.
 ```tcsh
-mkdir -p /glade/derecho/scratch/$USER/cases
-mkdir -p $HOME/collections
-cd $HOME/collections
-git clone https://github.com/jtruesdal/CAM-1 CAM_6_4_120_compass
-cd CAM_6_4_120_compass
-git checkout compass
-./bin/git-fleximod update
+> mkdir -p /glade/derecho/scratch/$USER/cases
+> mkdir -p $HOME/collections
+> cd $HOME/collections
+> git clone https://github.com/jtruesdal/CAM-1 CAM_6_4_120_compass
+> cd CAM_6_4_120_compass
+> git checkout compass
+> ./bin/git-fleximod update
 ```
 2. If you haven't already, checkout the COMPASS cookbook repository and navigate to the SCAM_scripts dir.
 ```tcsh
-cd $HOME/collections
-git clone https://github.com/NCAR/INFORM-COMPASS-cookbook.git
-cd INFORM-COMPASS-cookbook/SCAM_scripts
+> cd $HOME/collections
+> git clone https://github.com/NCAR/INFORM-COMPASS-cookbook.git
+> cd INFORM-COMPASS-cookbook/SCAM_scripts
 ```
 
 3. If you changed the location of the code or case directories, edit the CESMDIR and CASEDIR variables in the following script to point to your new locations.
-* SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
-* SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
-* SCAM_scripts/create_CAM6_ne30_SCAM_RUN
+ * SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
+ * SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
+ * SCAM_scripts/create_CAM6_ne30_SCAM_RUN
 
 4. The case title is set in the scripts using a combination of the model resolution, compset and other specifics about the experiment.  If you would like to rename the case for this experiment then edit the following line to set CASENAME as you wish.  The script will stop if you try to overwrite a previous case.
 
-set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
+ > set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
 
 5. Run the first globally nudged experiment.
 ```tcsh
-cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
-qcmd -- ./create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
+> cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
+> qcmd -- ./create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
 ```
 If you have not already, you will need to set a PBS_ACCOUNT environment variable in your $HOME/.tcshrc file to provide your project number.
 ```tcsh
@@ -64,8 +71,8 @@ If you have not already, you will need to set a PBS_ACCOUNT environment variable
 ```
 6. After the first experiment finishes, you should have output data underneath $SCRATCH/cases/your_case_name/run.  See what you have!
 ```tcsh
-cd /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp/run
-ls -al *.cam.h*
+> cd /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp/run
+> ls -al *.cam.h*
 ```
 
 As usual, you can check the status of the run, or delete it, using the instructions under [Running SCAM]({{ site.baseurl }}/scam/)
@@ -73,41 +80,42 @@ As usual, you can check the status of the run, or delete it, using the instructi
 7. Set up the second experiment to generate the IOP data for the SCAM run.
 *  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variable are set for the first SOCRATES flight Rf01 that began Jan 18 2018.
 
-set RUN_STARTDATE=2018-01-18
-set STOP_OPTION=ndays
-set STOP_N=3
-set REST_OPTION=${STOP_OPTION}
-set REST_N=${STOP_N}
-set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp
-set RUN_REFDATE=2018-01-18
-set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run
-set GET_REFCASE=TRUE
+ > set RUN_STARTDATE=2018-01-18
+   set STOP_OPTION=ndays
+   set STOP_N=3
+   set REST_OPTION=${STOP_OPTION}
+   set REST_N=${STOP_N}
+   set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp
+   set RUN_REFDATE=2018-01-18
+   set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run
+   set GET_REFCASE=TRUE
 
 8. Run the second experiment to generate IOP data for SCAM.
 ```tcsh
-cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
-qcmd -- ./create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
+> cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
+> qcmd -- ./create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
 ```
-9. Set up for the third experiment, the SCAM run:  NOTE: We should change exp 2 to write out a number of days of data to the iop history file.  Here we only copy the first days worth of data to the IOP file and only run the SCAM case for 47 timesteps.  We have 3 individual days of IOP data, we could cat them all together and copy that large IOP file over to SCRATCH or just have exp 2 write a number of days worth of data in one history file.
+
+9. Set up for the third experiment, the SCAM run:  **NOTE**: We should change exp 2 to write out a number of days of data to the iop history file.  Here we only copy the first days worth of data to the IOP file and only run the SCAM case for 47 timesteps.  We have 3 individual days of IOP data, we could cat them all together and copy that large IOP file over to SCRATCH or just have exp 2 write a number of days worth of data in one history file.
 * Copy the IOP file from exp 2 for the correct dates to $SCRATCH and modify the CAM namelist variable iopfile to point to the copied IOP file.
 * modify create_CAM6_ne30_SCAM_RUN script to set REFCASE variables, paths, and dates as done for step 6.
 * set PTS_LAT and PTS_LON variables in the script to point to the column you would like to simulate.  NOTE the PTS_LAT and PTS_LON should point to a column in SOCRATES area these are not.  I'll have to rerun with something along the RF01 flight path.
 ```tcsh
-cp /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQwindow_withCOSP_tau6h_3days_camiop.rf01.cosp.cam.h0i.2018-01-18-00000.nc /glade/derecho/scratch/$USER/r01.IOP.nc'
-cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
-emacs create_CAM6_ne30_SCAM_RUN
+> cp /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQwindow_withCOSP_tau6h_3days_camiop.rf01.cosp.cam.h0i.2018-01-18-00000.nc /glade/derecho/scratch/$USER/r01.IOP.nc'
+> cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
+> emacs create_CAM6_ne30_SCAM_RUN
 ```
-#modify the following line to point to your iop file
+* modify the following line to point to your iop file
 iopfile                = '/glade/derecho/scratch/jet/rf01.IOP.nc'
+* modify PTS_LAT and PTS_LON to point to the column you want to simulate
 
-#modify PTS_LAT and PTS_LON to point to the column you want to simulate
-set PTS_LON=276.7082039324993
-set PTS_LAT=44.80320177421346
+> set PTS_LON=276.7082039324993
+  set PTS_LAT=44.80320177421346
 
 10. Run SCAM
 ```tcsh
-cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
-qcmd -- ./create_CAM6_ne30_SCAM_RUN
+> cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
+> qcmd -- ./create_CAM6_ne30_SCAM_RUN
 ```
 
 These experiments should be analyzed and improved through several iterations.  Some items for consideration:

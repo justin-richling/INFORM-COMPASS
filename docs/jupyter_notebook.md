@@ -11,44 +11,45 @@ This cookbook can be run from /glade on Derecho.
 If you haven't already, [login to derecho and clone the repo]({{ site.baseurl }}/derecho/)
 
 ## Set up your environment
-Load some standard modules.  For more information, see https://ncar-hpc-docs.readthedocs.io/en/latest/environment-and-software/user-environment/modules/
+Load some standard modules and set up your python environment.
 
 ### Check which modules are available
-```bash
+For more information, see the HPC [Modules](https://ncar-hpc-docs.readthedocs.io/en/latest/environment-and-software/user-environment/modules/) page.
+```tcsh
 > module av
 ```
 Activate the conda module
-```bash
+```tcsh
 > module load conda
 > module av
 ```
 You will now see (L) after conda/latest in the output of the "module av" command indicating that conda has been loaded. **You will have to do this each time you login - it does not persist between login sessions**
 
-#### Set up your Python environment
-More info at https://ncar-hpc-docs.readthedocs.io/en/latest/environment-and-software/user-environment/conda/
+### Set up your Python environment
+More info on the HPC [Conda](https://ncar-hpc-docs.readthedocs.io/en/latest/environment-and-software/user-environment/conda/) documentation page.
 
 The environment stored in the environment.yml file is likely already available to you:
-```bash
+```tcsh
 > conda env list
 ```
 To see which env you currently have active
-```bash
+```tcsh
 > conda info
 ```
 Activate the NCAR Python Library (npl) environment.
-```bash
+```tcsh
 > conda activate npl-2024a
 ```
 You should now see (npl-2024a) at the beginning of your command prompt.
 
 The environment.yml file stored with this code is "npl-2024a".  The "npl" environment always points to the most recent version of the NPL. However, it is recommended that you load a specific version instead if you want to ensure consistent behavior from each installed package.
 
-To create a new environment.yml file (if we ever want to update what is stored with the code:
-```bash
+To create a new environment.yml file (if you ever want to update what is stored with the code):
+```tcsh
 > conda env export --no-builds -n npl-<year> > environment.yml
 ```
 
-### Launch a jupyter environment in your local browser
+## Launch a jupyter environment in your local browser
 In order to instantiate a jupyter-lab instance, you will need to access derecho using VNC, FastX (https://fastx.ucar.edu:3300),
  or via jupyterhub.hpc.ucar.edu. Using this last option:
 * In the browser on your local maching, enter the URL: ```jupyterhub.hpc.ucar.edu```
@@ -61,5 +62,4 @@ In order to instantiate a jupyter-lab instance, you will need to access derecho 
 ### Open a notebook
 * Navigate to your INFORM-COMPASS-cookbook checkout.
 * Click on one of the ipynb files to view that notebook.
-
 
