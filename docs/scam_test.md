@@ -5,6 +5,8 @@ permalink: /scam_test/ # Allows _layouts/default.html to find this page.
 ---
 
 # Running SCAMtest
+The scamtest scripts do a bit for bit (BFB) verification of the SCAM run. They are useful if you are running and getting unexpected results. qdif and tdif are difference from ops in the scamtest BFB comparison.
+
 SCAM can be run from the Derecho supercomputer at NCAR. If you haven't already, [login to derecho and clone the repo]({{ site.baseurl }}/derecho/)
 
 Login to Derecho, identify project/accounts you have access to, create a scratch directory. This and other useful SCAM information can be found on the [SCAM configuration]({{ site.baseurl }}/scam/) page.
