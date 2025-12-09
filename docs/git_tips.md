@@ -6,4 +6,6 @@ permalink: /git_tips/ # Allows _layouts/default.html to find this page.
 
 ## Git Tips
 
-https://docs.google.com/presentation/d/13IeeHyFkta1SArP6X1mAIgFybA5coNNP4hSYsTI_-Rw/edit#slide=id.p10
+[Git Tip of the Week (google doc)](https://docs.google.com/presentation/d/13IeeHyFkta1SArP6X1mAIgFybA5coNNP4hSYsTI_-Rw/edit?slide=id.g2f82b96746c_0_18)
+[Git Tip of the Week (PDF)](amp_git_tips.pdf)
+
