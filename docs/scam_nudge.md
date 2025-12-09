@@ -107,11 +107,8 @@ If you have not already, you will need to set a PBS_ACCOUNT environment variable
 > emacs create_CAM6_ne30_SCAM_RUN
 ```
 * modify the following line to point to your iop file
-
    > iopfile = '/glade/derecho/scratch/jet/rf01.IOP.nc'
-
 * modify PTS_LAT and PTS_LON to point to the column you want to simulate
-
    > set PTS_LON=276.7082039324993 <br>
      set PTS_LAT=44.80320177421346
 
