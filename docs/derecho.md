@@ -1,7 +1,7 @@
 ---
 layout: default # Tells Jekyll to wrap this content with _layouts/default.html
-title: derecho
-permalink: /derecho/
+title: Accessing Derecho # Shows up as the text in the browser tab
+permalink: /derecho/ # Allows _layouts/default.html to find this page.
 ---
 
 # Accessing Derecho

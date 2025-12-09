@@ -1,3 +1,9 @@
+---
+layout: default # Tells Jekyll to wrap this content with _layouts/default.html
+title: Run SCAM nudging # Shows up as the text in the browser tab
+permalink: /scam_nudge/ # Allows _layouts/default.html to find this page.
+---
+
 # Create Nudged IOP forcing using CAM for use with SCAM
 
 This procedure will generating IOP forcing data associated with the dates and area of the SOCRATES field campaign to use with SCAM.

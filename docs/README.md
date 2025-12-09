@@ -1,7 +1,3 @@
----
-layout: default # Tells Jekyll to wrap this content with _layouts/default.html
-title: INFORM-COMPASS cookbook
----
 
 <img align="left" width="175" height="175" src="/{{ site.baseurl }}/assets/INFORM_logo.png">
 
