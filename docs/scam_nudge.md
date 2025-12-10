@@ -17,15 +17,15 @@ The output of the SCAM run can be compared to the same column of the initial CAM
 There are three scripts for making these runs under the SCAM_scripts directory:
 * First: CAM6 run to create a ground truth dataset that is nudged to ERA5 reanalysis
 ```tcsh
->  SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
+SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
 ```
 * Second: CAM6 run(s) to generate CAM IOP data. CAM will nudge to ERA5 reanalysis outside the SOCRATES area
 ```tcsh
->  SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
+SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
 ```
 * Third: single column atmosphere (SCAM) run(s) using the generated CAM IOP data.
 ```tcsh
->  SCAM_scripts/create_CAM6_ne30_SCAM_RUN
+SCAM_scripts/create_CAM6_ne30_SCAM_RUN
 ```
 
 The steps outlined below place the CAM code and COMPASS-cookbook underneath your $HOME directory.  The 3 CAM/SCAM cases that are created from the cookbook scripts are located under your scratch space on Derecho.  The CAM experiments will generated a terabyte of data which can be handled by $SCRATCH.  These initial cases are writing out a lot of data for analysis as we are fine tuning our procedures. The final requirements will be much less. Since the SCAM experiment is just a single column it always puts out much smaller data sets and can be easily run on any filesystem.
@@ -50,14 +50,22 @@ Before you begin, you may find it useful to review the [SCAM configuration]({{ s
 ```
 
 1. If you changed the location of the code or case directories, edit the CESMDIR and CASEDIR variables in the following script to point to your new locations.
- * SCAM_scripts/create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
- * SCAM_scripts/create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
- * SCAM_scripts/create_CAM6_ne30_SCAM_RUN
-
+```tcsh
+> vi create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
+> vi create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
+> vi create_CAM6_ne30_SCAM_RUN
+```
 
 1. The case title is set in the scripts using a combination of the model resolution, compset and other specifics about the experiment.  If you would like to rename the case for this experiment then edit the following line to set CASENAME as you wish.  The script will stop if you try to overwrite a previous case.
 ```tcsh
  set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
+```
+
+1. If you have not already, you will need to set a PBS_ACCOUNT environment variable in your $HOME/.tcshrc file to provide your project number.
+```tcsh
+> vi ~/.tcshrc
+  > setenv PBS_ACCOUNT "P########"
+> source ~/.tcshrc (just needed the first time, will be run automatically each time you login in the future)
 ```
 
 1. Run the first globally nudged experiment.
@@ -65,12 +73,7 @@ Before you begin, you may find it useful to review the [SCAM configuration]({{ s
 > cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 > qcmd -- ./create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
 ```
-If you have not already, you will need to set a PBS_ACCOUNT environment variable in your $HOME/.tcshrc file to provide your project number.
-```tcsh
-> vi ~/.tcshrc
-  > setenv PBS_ACCOUNT "P########"
-> source ~/.tcshrc (just needed the first time, will be run automatically each time you login in the future)
-```
+
 1. After the first experiment finishes, you should have output data underneath $SCRATCH/cases/your_case_name/run.  See what you have!
 ```tcsh
 > cd /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp/run
