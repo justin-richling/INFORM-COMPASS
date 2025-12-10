@@ -33,25 +33,3 @@ or if you already cloned the repo, pull the latest updates
 > cd INFORM-COMPASS-cookbook/
 > git pull
 ```
-
-## Identify available projects/accounts (if running SCAM)
-(Not needed to run Jupyter notebooks)
-
-Running SCAM on the Derecho supercomputer requires access to CPU core-hours.  You can find out which projects/accounts are linked to your login via the Systems Accounting Manager webpage
-
-&nbsp;&nbsp;&nbsp;&nbsp;[https://sam.ucar.edu](https://sam.ucar.edu)
-
-or from the command line while logged into Derecho by providing a bogus project to the qinteractive command
-```tcsh
-> qinteractive -A P99999999 @derecho
-```
-The command will return a list of available accounts:
-```tcsh
-qsub: Invalid account for CPU usage, available accounts:
-Project, Status, Active
-Pxxxxxxxx, Normal, True
-Pxxxxxxxx, Normal, True
-,etc
-```
-* where xxxxxxxx is the actual project where you have access. If there are no projects available you will need to reach out to whomever in your group/program provides core-hours and request an allocation. Note which projects are available to you.
-
