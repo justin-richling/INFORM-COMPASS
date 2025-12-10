@@ -73,13 +73,13 @@ Before you begin, you may find it useful to review the [SCAM configuration]({{ s
 > cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 > qcmd -- ./create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
 ```
+You can check the status of the run, or delete it, using the scam commands described on the [Configure Scam]({{ site.baseurl }}/scam/) page.
 
 1. After the first experiment finishes, you should have output data underneath $SCRATCH/cases/your_case_name/run.  See what you have!
 ```tcsh
 > cd /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp/run
 > ls -al *.cam.h*
 ```
-  As usual, you can check the status of the run, or delete it, using the instructions under [Running SCAM]({{ site.baseurl }}/scam/)
 
 1. Set up the second experiment to generate the IOP data for the SCAM run.
 *  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variable are set for the first SOCRATES flight Rf01 that began Jan 18 2018.
