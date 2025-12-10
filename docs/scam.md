@@ -43,9 +43,10 @@ You will need to configure a scratch directory where SCAM can write files. Each 
 # Useful scam commands
 ## To check the status of the run:
 ```tcsh
-more CaseStatus
+> cd $SCRATCH/cases/your_case_name
+> more CaseStatus
 -or-
-qstat -u <YOUR_USERNAME>
+> qstat -u <YOUR_USERNAME>
 ```
 [qstat documentation](https://ncar-hpc-docs.readthedocs.io/en/latest/pbs/?h=qstat#qstat)
 
