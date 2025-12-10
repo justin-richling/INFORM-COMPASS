@@ -66,7 +66,7 @@ set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
 # create case
 #------------------
 
-$CESMDIR/cime/scripts/create_newcase --compset $COMPSET  --res $RES --compiler $COMPILER --case $CASEDIR/$CASENAME  --run-unsupported --walltime ${WALLTIME} --queue ${QUEUE} ${PES}
+$CESMDIR/cime/scripts/create_newcase --project $PBS_ACCOUNT --compset $COMPSET  --res $RES --compiler $COMPILER --case $CASEDIR/$CASENAME  --run-unsupported --walltime ${WALLTIME} --queue ${QUEUE} ${PES}
 
 cd  $CASEDIR/$CASENAME
 
