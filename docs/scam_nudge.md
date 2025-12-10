@@ -7,7 +7,7 @@ permalink: /scam_nudge/ # Allows _layouts/default.html to find this page.
 # Create Nudged IOP forcing using CAM for use with SCAM
 
 This procedure will generating IOP forcing data associated with the dates and area of the SOCRATES field campaign to use with SCAM.
-87a88,93
+
 * The first experiment will provide initial conditions that approximates the state of the atmosphere at daily time intervals throught the period of the SOCRATES field campaign.  The ERA5 reanalysis data will be used to nudge the thermodynamic vertical profiles via the T,U,V and Q fields for the initial CAM run.
 * The second experiment will also be a full 3d cam run which uses the initial condition/restart boundary data along with the CAMIOP and windowing capability of the nudging functionality to generate CAM IOP forcing that can be used with SCAM to rerun the state of any individual column.
 * The third experiment runs the single column version of CAM using the initial condition data along with the IOP forcing to rerun a specific column of the atmosphere during the SOCRATES period.
