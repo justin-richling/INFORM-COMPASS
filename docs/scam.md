@@ -31,7 +31,10 @@ Pxxxxxxxx, Normal, True
 Pxxxxxxxx, Normal, True
 ,etc
 ```
-* where xxxxxxxx is the actual project where you have access. If there are no projects available you will need to reach out to whomever in your group/program provides core-hours and request an allocation. Note which projects are available to you.
+where xxxxxxxx is the actual project where you have access. If there are no projects available you will need to reach out to whomever in your group/program provides core-hours and request an allocation. Note which projects are available to you.
+
+To get more info on how many hours are available for each account, login to SAM as described above, click on a project under reports and view it.
+
 
 ## Create a scratch directory
 You will need to configure a scratch directory where SCAM can write files. Each Derecho user should have a /glade/derecho/scratch directory. Create a scam dir under your scratch dir.
@@ -43,7 +46,7 @@ You will need to configure a scratch directory where SCAM can write files. Each 
 # Useful scam commands
 ## To check the status of the run:
 ```tcsh
-> cd $SCRATCH/cases/your_case_name
+> cd $SCRATCH/cases/<your_case_name>
 > more CaseStatus
 -or-
 > qstat -u <YOUR_USERNAME>
@@ -54,4 +57,9 @@ You will need to configure a scratch directory where SCAM can write files. Each 
 ```tcsh
 qdel #######
 ```
-where ###### is the Job ID from qstat
+where ###### is the Job ID from qstat. Before you can run again, you may need to clean up the run dir:
+```tcsh
+> cd $SCRATCH/cases/<your_case_name>
+> ./case.build --clean
+> ./case.build --clean-all
+```
