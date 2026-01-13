@@ -60,6 +60,7 @@ more CaseStatus
 -or-
 qstat -u <YOUR_USERNAME>
 ```
+[qstat documentation](https://ncar-hpc-docs.readthedocs.io/en/latest/pbs/?h=qstat#qstat)
 
 ### Run the second file
 **Describe what this file does here**
@@ -128,7 +129,7 @@ cd INFORM-COMPASS-cookbook/SCAM_scripts
 
 set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
 
-4. Run the first globally nudged experiment.
+5. Run the first globally nudged experiment.
 ```tcsh
 cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 qcmd -- ./create_CAM6_ne30_Global_Nudged_SOCRATES_Jan-Feb_2018
@@ -139,7 +140,7 @@ If you have not already, you will need to set a PBS_ACCOUNT environment variable
   > setenv PBS_ACCOUNT "P########"
 > source ~/.tcshrc (just needed the first time, will be run automatically each time you login in the future)
 ```
-5. After the first experiment finishes, you should have output data underneath $SCRATCH/cases/your_case_name/run.  See what you have!
+6. After the first experiment finishes, you should have output data underneath $SCRATCH/cases/your_case_name/run.  See what you have!
 ```tcsh
 cd /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp/run
 ls -al *.cam.h*
@@ -148,7 +149,13 @@ As usual, you can check the status with:
 ```tcsh
 qstatu -u <YOUR_USERNAME>
 ```
-6. Set up the second experiment to generate the IOP data for the SCAM run.
+and if you want to delete this one (it generates 1-2Tb of data),
+```tcsh
+qdel #######
+```
+where ###### is the Job ID from qstat
+
+7. Set up the second experiment to generate the IOP data for the SCAM run.
 *  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variable are set for the first SOCRATES flight Rf01 that began Jan 18 2018.
 
 set RUN_STARTDATE=2018-01-18
@@ -161,12 +168,12 @@ set RUN_REFDATE=2018-01-18
 set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run
 set GET_REFCASE=TRUE
 
-7. Run the second experiment to generate IOP data for SCAM.
+8. Run the second experiment to generate IOP data for SCAM.
 ```tcsh
 cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 qcmd -- ./create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
 ```
-8. Set up for the third experiment, the SCAM run:  NOTE: We should change exp 2 to write out a number of days of data to the iop history file.  Here we only copy the first days worth of data to the IOP file and only run the SCAM case for 47 timesteps.  We have 3 individual days of IOP data, we could cat them all together and copy that large IOP file over to SCRATCH or just have exp 2 write a number of days worth of data in one history file.
+9. Set up for the third experiment, the SCAM run:  NOTE: We should change exp 2 to write out a number of days of data to the iop history file.  Here we only copy the first days worth of data to the IOP file and only run the SCAM case for 47 timesteps.  We have 3 individual days of IOP data, we could cat them all together and copy that large IOP file over to SCRATCH or just have exp 2 write a number of days worth of data in one history file.
 * Copy the IOP file from exp 2 for the correct dates to $SCRATCH and modify the CAM namelist variable iopfile to point to the copied IOP file.
 * modify create_CAM6_ne30_SCAM_RUN script to set REFCASE variables, paths, and dates as done for step 6. 
 * set PTS_LAT and PTS_LON variables in the script to point to the column you would like to simulate.  NOTE the PTS_LAT and PTS_LON should point to a column in SOCRATES area these are not.  I'll have to rerun with something along the RF01 flight path.
@@ -182,7 +189,7 @@ iopfile                = '/glade/derecho/scratch/jet/rf01.IOP.nc'
 set PTS_LON=276.7082039324993
 set PTS_LAT=44.80320177421346
 
-9. Run SCAM
+10. Run SCAM
 ```tcsh
 cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 qcmd -- ./create_CAM6_ne30_SCAM_RUN
