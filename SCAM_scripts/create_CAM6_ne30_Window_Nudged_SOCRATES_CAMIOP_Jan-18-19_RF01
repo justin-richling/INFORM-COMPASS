@@ -6,7 +6,7 @@
 
 ### Full path of cesm source code and case (output) directories (see examples)
 
-set CESMDIR=${HOME}/collections/cam6_4_120_ESCOMP
+set CESMDIR=${HOME}/collections/cam6_4_120_compass
 set CASEDIR=${SCRATCH}/cases
 
 ### Case Name
@@ -53,6 +53,18 @@ set GET_REFCASE=TRUE
 #RF14	22 Feb 2018	00:30–07:14
 
 #------------------
+# Make sure that the user has configured a PBS_ACCOUNT environment variable
+#------------------
+
+if ( ! $?PBS_ACCOUNT ) then
+    echo "Account must be set as an environment var in your $HOME/.tcshrc file"
+    exit
+else
+    echo "Using account:"
+    echo $PBS_ACCOUNT
+endif
+
+#------------------
 # User should not need to set any options in this section
 #------------------
 
@@ -65,7 +77,7 @@ set CASENAME=${CASETITLE}.${COMPSET}.${RES}.${CASEID}.${EXP}
 # create case
 #------------------
 
-$CESMDIR/cime/scripts/create_newcase -compset $COMPSET  -res $RES -compiler $COMPILER -case $CASEDIR/$CASENAME  --run-unsupported --walltime ${WALLTIME} --queue ${QUEUE} ${PES} 
+$CESMDIR/cime/scripts/create_newcase --project $PBS_ACCOUNT --compset $COMPSET  --res $RES --compiler $COMPILER --case $CASEDIR/$CASENAME  --run-unsupported --walltime ${WALLTIME} --queue ${QUEUE} ${PES}
 
 cd  $CASEDIR/$CASENAME
 
