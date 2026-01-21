@@ -8,8 +8,8 @@ title: INFORM-COMPASS cookbook
 # INtegrating Field Obserations and Research Models
 
 ### an NSF NCAR Director's Office Initiative
-
-For details on code updates see the CHANGELOG within the code repository.
+<br>
+<br>
 
 ## Introduction
 
