@@ -9,7 +9,7 @@ The scamtest scripts do a bit for bit (BFB) verification of the SCAM run. They a
 
 SCAM can be run from the Derecho supercomputer at NCAR. If you haven't already, [login to derecho and clone the repo]({{ site.baseurl }}/derecho/)
 
-Login to Derecho, identify project/accounts you have access to, create a scratch directory. This and other useful SCAM information can be found on the [SCAM Tips]({{ site.baseurl }}/scam_tips/) page.
+Login to Derecho, identify project/accounts you have access to, create a scratch directory. This and other useful SCAM information can be found on the [SCAM COnfiguration]({{ site.baseurl }}/scam/) page.
 
 You will run two files (**after making the changes below**):
 * First run create_scamtest.F2000.ne3_ne3_mg37.005.**new**.cold_off.derecho
@@ -47,7 +47,7 @@ These collections are currently stored under John Truesdale's campaign dir so we
 > ./create_scamtest.F2000.ne3_ne3_mg37.005.new.cold_off.derecho
 ```
 
-Wait for the run to complete. Instructions for checking on it's progress are near the bottom of the [SCAM configuration]({{ site.baseurl }}/scam/) page.
+Wait for the run to complete. Instructions for checking on it's progress are near the bottom of the [SCAM Tips]({{ site.baseurl }}/scam_tips/) page.
 
 ## Run the second file
 
