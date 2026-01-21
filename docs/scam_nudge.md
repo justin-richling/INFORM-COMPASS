@@ -30,7 +30,7 @@ SCAM_scripts/create_CAM6_ne30_SCAM_RUN
 
 The steps outlined below place the CAM code and COMPASS-cookbook underneath your $HOME directory.  The 3 CAM/SCAM cases that are created from the cookbook scripts are located under your scratch space on Derecho.  The CAM experiments will generated a terabyte of data which can be handled by $SCRATCH.  These initial cases are writing out a lot of data for analysis as we are fine tuning our procedures. The final requirements will be much less. Since the SCAM experiment is just a single column it always puts out much smaller data sets and can be easily run on any filesystem.
 
-Before you begin, you may find it useful to review the [SCAM configuration]({{ site.baseurl }}/scam/) page.
+Before you begin, you may find it useful to review the [SCAM Tips]({{ site.baseurl }}/scam_tips/) page.
 
 1. Create the collections and case directories and check out your own version of the CAM code.
 ```tcsh
