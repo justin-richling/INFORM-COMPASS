@@ -26,14 +26,23 @@ Change the CASEDIR to point to your scratch scam dir.
 
 ### Modify the scripts to point to the CESM collection directory
 These collections are currently stored under John Truesdale's campaign dir so we are using that. Edit the SCAM .derecho scripts to set this directory.
-> [!NOTE]
-> **Need to move these to a more generic location**
+
+<div style="padding: 16px; margin-bottom: 16pt; border-left: .25em solid #0969da; background-color: #f0f7ff; border-radius: 6px;">
+  <p style="margin-top: 4px; margin-bottom: 0; color: #0969da;">
+    <strong> Note:</strong> Need to move these to a more generic location
+  </p>
+</div>
 
 > set CESMDIR=/glade/campaign/cgd/amp/jet/collections/$CAMDIRNAME
 
 ## Run the first file
-> [!NOTE]
-> **Need to describe what this file does here**
+
+<div style="padding: 16px; margin-bottom: 16pt; border-left: .25em solid #0969da; background-color: #f0f7ff; border-radius: 6px;">
+  <p style="margin-top: 4px; margin-bottom: 0; color: #0969da;">
+    <strong> Note:</strong> Need to describe what this file does here.
+  </p>
+</div>
+
 ```tcsh
 > ./create_scamtest.F2000.ne3_ne3_mg37.005.new.cold_off.derecho
 ```
@@ -41,8 +50,12 @@ These collections are currently stored under John Truesdale's campaign dir so we
 Wait for the run to complete. Instructions for checking on it's progress are near the bottom of the [SCAM configuration]({{ site.baseurl }}/scam/) page.
 
 ## Run the second file
-> [!NOTE]
-> **Need to describe what this file does here**
+
+<div style="padding: 16px; margin-bottom: 16pt; border-left: .25em solid #0969da; background-color: #f0f7ff; border-radius: 6px;">
+  <p style="margin-top: 4px; margin-bottom: 0; color: #0969da;">
+    <strong> Note:</strong> Need to describe what this file does here.
+  </p>
+</div>
 
 Once the first run completes, copy the created netCDF file from the scratch scam run dir to just under scratch/<YOUR_USERNAME>. The file path is too long to access it from it's original directory.
 ```tcsh
