@@ -82,15 +82,15 @@ You can check the status of the run, or delete it, using the scam commands descr
 ```
 
 1. Set up the second experiment to generate the IOP data for the SCAM run.
-*  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variable are set for the first SOCRATES flight Rf01 that began Jan 18 2018.
+*  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variable are set for the first SOCRATES flight RF01 that began Jan 15 2018.
 
-   > set RUN_STARTDATE=2018-01-18 <br>
+   > set RUN_STARTDATE=2018-01-15 <br>
    > set STOP_OPTION=ndays <br>
    > set STOP_N=3 <br>
    > set REST_OPTION=${STOP_OPTION} <br>
    > set REST_N=${STOP_N} <br>
    > set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp <br>
-   > set RUN_REFDATE=2018-01-18 <br>
+   > set RUN_REFDATE=2018-01-15 <br>
    > set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run <br>
    > set GET_REFCASE=TRUE
 
@@ -105,7 +105,7 @@ You can check the status of the run, or delete it, using the scam commands descr
 * modify create_CAM6_ne30_SCAM_RUN script to set REFCASE variables, paths, and dates as done for step 6.
 * set PTS_LAT and PTS_LON variables in the script to point to the column you would like to simulate.  NOTE the PTS_LAT and PTS_LON should point to a column in SOCRATES area these are not.  I'll have to rerun with something along the RF01 flight path.
 ```tcsh
-> cp /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQwindow_withCOSP_tau6h_3days_camiop.rf01.cosp.cam.h0i.2018-01-18-00000.nc /glade/derecho/scratch/$USER/r01.IOP.nc'
+> cp /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQwindow_withCOSP_tau6h_3days_camiop.rf01.cosp.cam.h0i.2018-01-15-00000.nc /glade/derecho/scratch/$USER/r01.IOP.nc'
 > cd $HOME/collections/INFORM-COMPASS-cookbook/SCAM_scripts
 > emacs create_CAM6_ne30_SCAM_RUN
 ```
