@@ -25,12 +25,15 @@ Change the CASEDIR to point to your scratch scam dir.
 > set CASEDIR=/glade/derecho/scratch/<YOUR_USERNAME>/scam
 
 ### Modify the scripts to point to the CESM collection directory
-These collections are currently stored under John Truesdale's campaign dir so we are using that. **(What do we want to do here long-term?)**  Edit the SCAM .derecho scripts to set this directory.
+These collections are currently stored under John Truesdale's campaign dir so we are using that. Edit the SCAM .derecho scripts to set this directory.
+> [!NOTE]
+> **Need to move these to a more generic location**
 
 > set CESMDIR=/glade/campaign/cgd/amp/jet/collections/$CAMDIRNAME
 
 ## Run the first file
-**Describe what this file does here**
+> [!NOTE]
+> **Need to describe what this file does here**
 ```tcsh
 > ./create_scamtest.F2000.ne3_ne3_mg37.005.new.cold_off.derecho
 ```
@@ -38,7 +41,8 @@ These collections are currently stored under John Truesdale's campaign dir so we
 Wait for the run to complete. Instructions for checking on it's progress are near the bottom of the [SCAM configuration]({{ site.baseurl }}/scam/) page.
 
 ## Run the second file
-**Describe what this file does here**
+> [!NOTE]
+> **Need to describe what this file does here**
 
 Once the first run completes, copy the created netCDF file from the scratch scam run dir to just under scratch/<YOUR_USERNAME>. The file path is too long to access it from it's original directory.
 ```tcsh
