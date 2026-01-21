@@ -42,24 +42,3 @@ You will need to configure a scratch directory where SCAM can write files. Each 
 > ls /glade/derecho/scratch/<YOUR_USERNAME>
 > mkdir /glade/derecho/scratch/<YOUR_USERNAME>/scam
 ```
-
-# Useful scam commands
-## To check the status of the run:
-```tcsh
-> cd $SCRATCH/cases/<your_case_name>
-> more CaseStatus
--or-
-> qstat -u <YOUR_USERNAME>
-```
-[qstat documentation](https://ncar-hpc-docs.readthedocs.io/en/latest/pbs/?h=qstat#qstat)
-
-## To delete a run
-```tcsh
-qdel #######
-```
-where ###### is the Job ID from qstat. Before you can run again, you may need to clean up the run dir:
-```tcsh
-> cd $SCRATCH/cases/<your_case_name>
-> ./case.build --clean
-> ./case.build --clean-all
-```
