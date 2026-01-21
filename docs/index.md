@@ -9,13 +9,12 @@ title: INFORM-COMPASS cookbook
 
 ### an NSF NCAR Director's Office Initiative
 
-### Changelog
-
-#### 0.1 Dec 2025
-* Initial change from static README.md to a github.io site
-
+For details on code updates see the CHANGELOG within the code repository.
 
 ## Introduction
+
+> [!NOTE]
+> **Need to assign someone to fill out this content**
 
 The goal of INFORM-COMPASS is to ....
 
