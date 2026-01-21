@@ -13,8 +13,9 @@ title: INFORM-COMPASS cookbook
 
 ## Introduction
 
-> [!NOTE]
-> **Need to assign someone to fill out this content**
+<div style="padding: 12px; border: 1px dashed #0969da; background-color: #fffdf5; border-radius: 6px; color: #9a6700;">
+    <strong> TO-DO:</strong> Need to assign someone to fill out this content.
+</div>
 
 The goal of INFORM-COMPASS is to ....
 
