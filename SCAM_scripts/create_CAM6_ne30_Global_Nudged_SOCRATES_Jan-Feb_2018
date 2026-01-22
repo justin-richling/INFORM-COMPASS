@@ -81,11 +81,16 @@ set RUNDIR=${CASEDIR}/${CASENAME}/run
 #------------------
 ./xmlchange RUN_TYPE=startup
 ./xmlchange RUN_STARTDATE=2018-01-01
-./xmlchange STOP_N=2
-./xmlchange STOP_OPTION=nmonths
+./xmlchange STOP_OPTION=ndays
+./xmlchange STOP_N=10
+./xmlchange RESUBMIT=5
 ./xmlchange REST_OPTION=ndays
 ./xmlchange REST_N=1
 ./xmlchange JOB_WALLCLOCK_TIME=${WALLTIME} --subgroup=case.run
+
+# Disable archiving
+./xmlchange DOUT_S='FALSE'
+
  
 ### Append to CAM configure options
 ./xmlchange ROF_NCPL=`./xmlquery  --value "ATM_NCPL"`
