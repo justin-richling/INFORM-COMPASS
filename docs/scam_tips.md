@@ -40,11 +40,12 @@ You have two options:
 A better strategy is not to ask for a longer wallclock time but to break up the run into shorter segments that don't take too long to run. The jobs usually get in the queue quicker and finish faster. Use the xmlchange commands to tell the model to run a subset of days and repeat itself until all days are run.
 
 For example, if you want to run 2 months (60 days), you could ask the model to run 10 days and resubmit itself 5 times, for a total of 60 days.
-```
+```tcsh
 > cd /galde/derecho/scratch/<username>/cases/<your_case>
 > ./xmlchange STOP_OPTION=ndays
 > ./xmlchange STOP_N=10
 > ./xmlchange RESUBMIT=5
 > ./*.submit
+```
 
 Each time the model runs 10 days it will look at the RESUBMIT variable and if it is greater than 0 the model framework willsubtract 1 from the total and resubmit the job to run another 10 days, restarting from where it left off. The env_run.xml file contains the STOP and RESUBMIT parameters controlling the length of the run. The xmlchange adjusts the value of these parameters in the env_run.xml file.
