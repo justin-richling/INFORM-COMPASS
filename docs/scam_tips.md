@@ -4,7 +4,7 @@ title: Scam Tips # Shows up as the text in the browser tab
 permalink: /scam_tips/ # Allows _layouts/default.html to find this page.
 ---
 
-## Scam Tips
+# Scam Tips
 
 ## To check the status of the run:
 ```tcsh
@@ -26,14 +26,14 @@ where ###### is the Job ID from qstat. Before you can run again, you may need to
 > ./case.build --clean-all
 ```
 
-## Errors
+# Errors
 
-### Job exceeded resource walltime
+## Job exceeded resource walltime
 The error is saying the jobs did not specify a long enough queue slot and the it ran out of time before finishing. To determine how much time you need, look in the run/ subdir of your case, which can be found under `/glade/derecho/scratch/<username>/cases`. The queue length (JOB_WALLCLOCK_TIME) is set in the `env_workflow.xml` file in the case directory. Examine the times for the daily files that were written out before the job failed. That, plus your JOB_WALLCLOCK_TIME should give you an idea of how much more time you need.
 
 You have two options:
 
-#### Adjust the wallclock limit
+### Adjust the wallclock limit
 `./xmlchange JOB_WALLCLOCK_TIME=20:00:00 --subgroup=case.run` replacing 20 with however many hours you think you need. It may take a long time to get a job into the queue that requires a long runtime. The job may wait hours or days before it gets a slot to run depending on how busy the machine is.
 
 ### Break up the run into shorter segments
