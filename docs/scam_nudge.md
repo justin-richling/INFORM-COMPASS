@@ -100,7 +100,13 @@ You can check the status of the run, or delete it, using the scam commands descr
 > qcmd -- ./create_CAM6_ne30_Window_Nudged_SOCRATES_CAMIOP_Jan-18-19_RF01
 ```
 
-9. Set up for the third experiment, the SCAM run:  **NOTE**: We should change exp 2 to write out a number of days of data to the iop history file.  Here we only copy the first days worth of data to the IOP file and only run the SCAM case for 47 timesteps.  We have 3 individual days of IOP data, we could cat them all together and copy that large IOP file over to SCRATCH or just have exp 2 write a number of days worth of data in one history file.
+1. See what the second experiment generated
+```tcsh
+> cd /glade/derecho/scratch/$USER/cases/f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQwindow_withCOSP_tau6h_3days_camiop.rf01.cosp/run
+>
+```
+
+1. Set up for the third experiment, the SCAM run:  **NOTE**: We should change exp 2 to write out a number of days of data to the iop history file.  Here we only copy the first days worth of data to the IOP file and only run the SCAM case for 47 timesteps.  We have 3 individual days of IOP data, we could cat them all together and copy that large IOP file over to SCRATCH or just have exp 2 write a number of days worth of data in one history file.
 * Copy the IOP file from exp 2 for the correct dates to $SCRATCH and modify the CAM namelist variable iopfile to point to the copied IOP file.
 * modify create_CAM6_ne30_SCAM_RUN script to set REFCASE variables, paths, and dates as done for step 6.
 * set PTS_LAT and PTS_LON variables in the script to point to the column you would like to simulate.  NOTE the PTS_LAT and PTS_LON should point to a column in SOCRATES area these are not.  I'll have to rerun with something along the RF01 flight path.
