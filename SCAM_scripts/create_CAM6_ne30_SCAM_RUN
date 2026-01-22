@@ -6,7 +6,7 @@
 
 ### Full path of cesm source code and case (output) directories (see examples)
 
-set CESMDIR=${HOME}/collections/cam6_4_120_compass
+set CESMDIR=${HOME}/collections/CAM_6_4_120_compass
 set CASEDIR=${SCRATCH}/cases
 
 ### Case Name
@@ -40,21 +40,24 @@ set GET_REFCASE=TRUE
 set PTS_LON=276.7082039324993
 set PTS_LAT=44.80320177421346
 
+### SOCRATES FLIGHT TIMES
+### Taken from https://doi.org/10.5065/D6M32TM9
 #Flight  	Date (UTC)	Time Period (UTC)
-#RF01	18 Jan 2018	01:21–09:12
-#RF02	19 Jan 2018	21:56–05:43
-#RF03	22 Jan 2018	00:04–06:21
-#RF04	24 Jan 2018	00:46–07:07
-#RF05	25 Jan 2018	01:54–06:50
-#RF06	29 Jan 2018	23:25–05:59
-#RF07	01 Feb 2018	00:30–06:05
-#RF08	04 Feb 2018	01:10–06:40
-#RF09	05 Feb 2018	01:20–07:05
-#RF10	07 Feb 2018	22:58–05:27
-#RF11	09 Feb 2018	01:14–06:54
-#RF12	15 Feb 2018	22:15–03:52
-#RF13	18 Feb 2018	02:40–08:44
-#RF14	22 Feb 2018	00:30–07:14
+#RF01	15 Jan 2018	22:50–06:04
+#RF02	19 Jan 2018	00:45–07:45
+#RF03	22 Jan 2018	21:00–04:15
+#RF04	23 Jan 2018	23:10–06:15
+#RF05	25 Jan 2018	22:50–06:00
+#RF06	28 Jan 2018	22:50–06:12
+#RF07	31 Jan 2018	00:50–08:40
+#RF08	03 Feb 2018	23:00–06:55
+#RF09	04 Feb 2018	22:50–07:05
+#RF10	07 Feb 2018	20:50–05:15
+#RF11	17 Feb 2018	01:30–06:17
+#RF12	17 Feb 2018	23:40–08:00
+#RF13	19 Feb 2018	22:45–06:42
+#RF14	21 Feb 2018	22:40–06:48
+#RF15	24 Feb 2018	01:50–08:41
 
 #------------------
 # Make sure that the user has configured a PBS_ACCOUNT environment variable
