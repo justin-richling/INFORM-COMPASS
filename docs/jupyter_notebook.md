@@ -52,7 +52,7 @@ To create a new environment.yml file (if you ever want to update what is stored 
 ## Launch a jupyter environment in your local browser
 In order to instantiate a jupyter-lab instance, you will need to access derecho using VNC, FastX (https://fastx.ucar.edu:3300),
  or via jupyterhub.hpc.ucar.edu. Using this last option:
-* In the browser on your local maching, enter the URL: ```jupyterhub.hpc.ucar.edu```
+* In the browser on your local machine, enter the URL: ```jupyterhub.hpc.ucar.edu```
 * Click the Available NCAR Resources option ```Production```
 * Login with your standard Duo credentials and respond to the Duo push notification
 * Start a server if you don't already have one running
