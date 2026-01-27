@@ -48,4 +48,4 @@ For example, if you want to run 2 months (60 days), you could ask the model to r
 > ./*.submit
 ```
 
-Each time the model runs 10 days it will look at the RESUBMIT variable and if it is greater than 0 the model framework willsubtract 1 from the total and resubmit the job to run another 10 days, restarting from where it left off. The env_run.xml file contains the STOP and RESUBMIT parameters controlling the length of the run. The xmlchange adjusts the value of these parameters in the env_run.xml file.
+Each time the model runs 10 days it will look at the RESUBMIT variable and if it is greater than 0 the model framework will subtract 1 from the total and resubmit the job to run another 10 days, restarting from where it left off. The env_run.xml file contains the STOP and RESUBMIT parameters controlling the length of the run. The xmlchange adjusts the value of these parameters in the env_run.xml file.

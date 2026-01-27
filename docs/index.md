@@ -5,7 +5,7 @@ title: INFORM-COMPASS cookbook
 
 <img align="left" width="150" height="150" src="./assets/INFORM_logo.png">
 
-# INtegrating Field Obserations and Research Models
+# INtegrating Field Observations and Research Models
 
 ### an NSF NCAR Director's Office Initiative
 <br>
