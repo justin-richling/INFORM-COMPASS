@@ -6,9 +6,9 @@ permalink: /scam_nudge/ # Allows _layouts/default.html to find this page.
 
 # Create Nudged IOP forcing using CAM for use with SCAM
 
-This procedure will generating IOP forcing data associated with the dates and area of the SOCRATES field campaign to use with SCAM.
+This procedure will generate IOP forcing data associated with the dates and area of the SOCRATES field campaign to use with SCAM.
 
-* The first experiment will provide initial conditions that approximates the state of the atmosphere at daily time intervals throught the period of the SOCRATES field campaign.  The ERA5 reanalysis data will be used to nudge the thermodynamic vertical profiles via the T,U,V and Q fields for the initial CAM run.
+* The first experiment will provide initial conditions that approximates the state of the atmosphere at daily time intervals throughout the period of the SOCRATES field campaign.  The ERA5 reanalysis data will be used to nudge the thermodynamic vertical profiles via the T,U,V and Q fields for the initial CAM run.
 * The second experiment will also be a full 3d cam run which uses the initial condition/restart boundary data along with the CAMIOP and windowing capability of the nudging functionality to generate CAM IOP forcing that can be used with SCAM to rerun the state of any individual column.
 * The third experiment runs the single column version of CAM using the initial condition data along with the IOP forcing to rerun a specific column of the atmosphere during the SOCRATES period.
 
@@ -82,7 +82,7 @@ You can check the status of the run, or delete it, using the scam commands descr
 ```
 
 1. Set up the second experiment to generate the IOP data for the SCAM run.
-*  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variable are set for the first SOCRATES flight RF01 that began Jan 15 2018.
+*  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variables are set for the first SOCRATES flight RF01 that began Jan 15 2018.
 
    > set RUN_STARTDATE=2018-01-15 <br>
    > set STOP_OPTION=ndays <br>
@@ -129,7 +129,7 @@ You can check the status of the run, or delete it, using the scam commands descr
 
 These experiments should be analyzed and improved through several iterations.  Some items for consideration:
 * How long a spin up is needed to bring the CAM into a quasi equilibrated state for the SOCRATES start dates?  Our first run started 2 weeks before SOCRATES start.
-* What model variables should be nudged and what nuding parameters work best to achieve a state that is close to the obs but not too far from CAM equilibrium
+* What model variables should be nudged and what nudging parameters work best to achieve a state that is close to the obs but not too far from CAM equilibrium
   -  Exp. 1 and 2 used 6 hour nudging on T,U,V, and Q. Should we just be nudging with T,U, and V? Is a 6hr Tau nudge timescale too strong?  Do we need to nudge hourly?
   -  Exp. 1 is a global nudge to bring the SOCRATES area close to the reanalysis state
   -  Exp. 2 is nudged outside the SOCRATES region using the windowing feature of CAM nudging to allow the physics parameterizations in the SOCRATES area to evolve freely
