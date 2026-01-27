@@ -47,7 +47,7 @@ These collections are currently stored under John Truesdale's campaign dir so we
 > ./create_scamtest.F2000.ne3_ne3_mg37.005.new.cold_off.derecho
 ```
 
-Wait for the run to complete. Instructions for checking on it's progress are near the bottom of the [SCAM Tips]({{ site.baseurl }}/scam_tips/) page.
+Wait for the run to complete. Instructions for checking on its progress are near the bottom of the [SCAM Tips]({{ site.baseurl }}/scam_tips/) page.
 
 ## Run the second file
 
@@ -57,7 +57,7 @@ Wait for the run to complete. Instructions for checking on it's progress are nea
   </p>
 </div>
 
-Once the first run completes, copy the created netCDF file from the scratch scam run dir to just under scratch/<YOUR_USERNAME>. The file path is too long to access it from it's original directory.
+Once the first run completes, copy the created netCDF file from the scratch scam run dir to just under scratch/<YOUR_USERNAME>. The file path is too long to access it from its original directory.
 ```tcsh
 > cp /glade/derecho/scratch/<YOUR_USERNAME>/scam/scamtest.F2000.ne3_ne3_mg37.005.new.cold_off/run/scamtest.F2000.ne3_ne3_mg37.005.new.cold_off.cam.h1i.0001-01-01-00000.nc /glade/derecho/scratch/<YOUR_USERNAME>/.
 ```
