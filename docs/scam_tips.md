@@ -41,7 +41,7 @@ For longer runtimes, a better strategy is not to ask for a longer wallclock time
 
 For example, if you want to run 2 months (60 days), you could ask the model to run 10 days and resubmit itself 5 times, for a total of 60 days.
 ```tcsh
-> cd /galde/derecho/scratch/<username>/cases/<your_case>
+> cd /glade/derecho/scratch/<username>/cases/<your_case>
 > ./xmlchange STOP_OPTION=ndays
 > ./xmlchange STOP_N=10
 > ./xmlchange RESUBMIT=5
