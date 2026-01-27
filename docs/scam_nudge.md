@@ -83,16 +83,17 @@ You can check the status of the run, or delete it, using the scam commands descr
 
 1. Set up the second experiment to generate the IOP data for the SCAM run.
 *  Modify the following script variables to specify the dates that you want to generate IOP data for. As an example the following variables are set for the first SOCRATES flight RF01 that began Jan 15 2018.
-
-   > set RUN_STARTDATE=2018-01-15 <br>
-   > set STOP_OPTION=ndays <br>
-   > set STOP_N=3 <br>
-   > set REST_OPTION=${STOP_OPTION} <br>
-   > set REST_N=${STOP_N} <br>
-   > set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp <br>
-   > set RUN_REFDATE=2018-01-15 <br>
-   > set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run <br>
-   > set GET_REFCASE=TRUE
+```tcsh
+set RUN_STARTDATE=2018-01-15
+set STOP_OPTION=ndays
+set STOP_N=3
+set REST_OPTION=${STOP_OPTION}
+set REST_N=${STOP_N}
+set RUN_REFCASE=f.e30.cam6_4_120.FHIST_BGC.ne30_ne30_mg17.SOCRATES_nudgeUVTQsoc_full_withCOSP_tau6h_2months_inithist.100.cosp
+set RUN_REFDATE=2018-01-15
+set RUN_REFDIR=/glade/derecho/scratch/$USER/cases/${RUN_REFCASE}/run
+set GET_REFCASE=TRUE
+```
 
 1. Run the second experiment to generate IOP data for SCAM.
 ```tcsh
@@ -116,10 +117,15 @@ You can check the status of the run, or delete it, using the scam commands descr
 > emacs create_CAM6_ne30_SCAM_RUN
 ```
 * modify the following line to point to your iop file
-   > iopfile = '/glade/derecho/scratch/jet/rf01.IOP.nc'
+```tcsh
+iopfile = '/glade/derecho/scratch/jet/rf01.IOP.nc'
+```
+
 * modify PTS_LAT and PTS_LON to point to the column you want to simulate
-   > set PTS_LON=276.7082039324993 <br>
-     set PTS_LAT=44.80320177421346
+```
+set PTS_LON=276.7082039324993
+set PTS_LAT=44.80320177421346
+```
 
 1. Run SCAM
 ```tcsh
