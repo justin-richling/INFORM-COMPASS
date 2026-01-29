@@ -115,6 +115,17 @@ def load_cam_doc(docsies):
 
 def summarize_atm_in(atm_in_path):
     fincl_dict, cosp_vars, nudge_vars, other_vars, empty_htapes = load_cam_doc(atm_in_path)
+    if fincl_dict is None and cosp_vars is None and nudge_vars is None and other_vars is None and empty_htapes is None:
+        return {
+            "run_name": "AHJK",  # or however you define it
+            "nudging": "AHJK",
+            "nudged_vars": "AHJK",
+            "cosp": "AHJK",
+            "cosp_vars": "AHJK",
+            "fincl": "AHJK",
+            "empty_htapes": "AHJK",
+            "other_vars": "AHJK"
+        }
 
     return {
         "run_name": atm_in_path.split("/")[-2],  # or however you define it
