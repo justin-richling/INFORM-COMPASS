@@ -1,0 +1,9 @@
+runs:
+  - name: F2000_nudge_TQ
+    atm_in: /glade/campaign/foo/bar/F2000/atm_in
+
+  - name: F2000_cosp
+    atm_in: /glade/campaign/foo/bar/F2000_COSP/atm_in
+
+  - name: Nudged_CAM6_test
+    atm_in: /glade/work/ulysses/test/run/atm_in

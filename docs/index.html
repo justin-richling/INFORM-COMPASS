@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CESM Nudging & COSP Matrix</title>
+  <style>
+    table { border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 6px; }
+    .yes { background: #c8f7c5; }
+    .no  { background: #f7c5c5; }
+    details { max-width: 600px; }
+  </style>
+</head>
+<body>
+
+<h1>CESM Run Matrix</h1>
+
+<table id="matrix">
+  <thead>
+    <tr>
+      <th>Run</th>
+      <th>Nudging</th>
+      <th>COSP</th>
+      <th>fincl</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+fetch("run_matrix.json")
+  .then(r => r.json())
+  .then(data => {
+    const tbody = document.querySelector("#matrix tbody");
+
+    data.forEach(run => {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${run.run_name}</td>
+        <td class="${run.nudging ? 'yes' : 'no'}">
+          ${run.nudging ? 'Yes' : 'No'}
+        </td>
+        <td class="${run.cosp ? 'yes' : 'no'}">
+          ${run.cosp ? 'Yes' : 'No'}
+        </td>
+        <td>
+          <details>
+            <summary>Variables</summary>
+            <pre>${JSON.stringify(run.fincl, null, 2)}</pre>
+          </details>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  });
+</script>
+
+</body>
+</html>
