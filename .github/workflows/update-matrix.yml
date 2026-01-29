@@ -19,7 +19,7 @@ jobs:
 
       - name: Generate matrix
         run: |
-          python scripts/generate_matrix.py
+          python scripts/generate_exp_matrix.py
 
       - name: Commit updated matrix
         run: |
