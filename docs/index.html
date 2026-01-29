@@ -1,61 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>CESM Nudging & COSP Matrix</title>
+  <meta charset="UTF-8">
+  <title>CESM Run Matrix</title>
+
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
   <style>
-    table { border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 6px; }
-    .yes { background: #c8f7c5; }
-    .no  { background: #f7c5c5; }
-    details { max-width: 600px; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 5px; font-size: 0.9em; vertical-align: top; }
+    td pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
   </style>
 </head>
 <body>
+  <h1>CESM Run Matrix</h1>
+  <table id="matrix" class="display">
+    <thead>
+      <tr>
+        <th>Run Name</th>
+        <th>Nudging</th>
+        <th>COSP</th>
+        <th>FINCL Keys</th>
+        <th>Nudged Vars</th>
+        <th>COSP Vars</th>
+        <th>Other Vars</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-<h1>CESM Run Matrix</h1>
+  <!-- jQuery and DataTables JS -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-<table id="matrix">
-  <thead>
-    <tr>
-      <th>Run</th>
-      <th>Nudging</th>
-      <th>COSP</th>
-      <th>fincl</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+  <script>
+    const tableBody = document.querySelector("#matrix tbody");
 
-<script>
-fetch("run_matrix.json")
-  .then(r => r.json())
-  .then(data => {
-    const tbody = document.querySelector("#matrix tbody");
+    fetch("run_matrix.json")
+      .then(r => r.json())
+      .then(data => {
+        console.log("Loaded runs:", data.length);
+        data.forEach(run => {
+          const tr = document.createElement("tr");
 
-    data.forEach(run => {
-      const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${run.run_name}</td>
+            <td>${run.nudging}</td>
+            <td>${run.cosp}</td>
+            <td>${Object.keys(run.fincl || {}).join(", ")}</td>
+            <td><pre>${(run.nudged_vars || []).join("\n")}</pre></td>
+            <td><pre>${(run.cosp_vars || []).join("\n")}</pre></td>
+            <td><pre>${(run.other_vars || []).join("\n")}</pre></td>
+          `;
 
-      tr.innerHTML = `
-        <td>${run.run_name}</td>
-        <td class="${run.nudging ? 'yes' : 'no'}">
-          ${run.nudging ? 'Yes' : 'No'}
-        </td>
-        <td class="${run.cosp ? 'yes' : 'no'}">
-          ${run.cosp ? 'Yes' : 'No'}
-        </td>
-        <td>
-          <details>
-            <summary>Variables</summary>
-            <pre>${JSON.stringify(run.fincl, null, 2)}</pre>
-          </details>
-        </td>
-      `;
+          tableBody.appendChild(tr);
+        });
 
-      tbody.appendChild(tr);
-    });
-  });
-</script>
-
+        // Initialize DataTables after rows exist
+        $(document).ready(function () {
+          $('#matrix').DataTable({
+            scrollX: true,
+            pageLength: 25,
+            order: [[0, "asc"]]
+          });
+        });
+      })
+      .catch(err => {
+        console.error("Failed to load run_matrix.json:", err);
+        tableBody.innerHTML = `<tr><td colspan="7">Error loading JSON data</td></tr>`;
+      });
+  </script>
 </body>
 </html>
