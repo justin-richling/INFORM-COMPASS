@@ -1,6 +1,6 @@
 runs:
   - name: f.e30_cam6_4_120.FHIST_BGC.f09_f09_mg17.SOCRATES_nudgeUVTfull_withCOSP_tau6h.001
-    atm_in: "/glade/derecho/scratch/islas/${name}/run/atm_in"
+    atm_in: "/glade/derecho/scratch/islas/f.e30_cam6_4_120.FHIST_BGC.f09_f09_mg17.SOCRATES_nudgeUVTfull_withCOSP_tau6h.001/run/atm_in"
 
   #- name: F2000_cosp
   #  atm_in: /glade/campaign/foo/bar/F2000_COSP/atm_in
