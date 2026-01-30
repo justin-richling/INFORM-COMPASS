@@ -140,11 +140,13 @@ print("Runs in matrix before check:", matrix0)
 with open("config/runs.yml") as f:
     cfg = yaml.safe_load(f)
 
+"""
 # 1️⃣ Handle deletions first
 for run in cfg["runs"]:
     if run.get("delete", False):
-        matrix = delete_entry(matrix, run["name"])
-
+        status = "deleted"
+        matrix, status = delete_entry(matrix, run["name"])"""
+"""
 # 2️⃣ Handle additions / updates
 for run in cfg["runs"]:
     if run.get("delete", False):
@@ -156,8 +158,13 @@ for run in cfg["runs"]:
 
     summary["run_name"] = run["name"]
     matrix = add_entry(matrix, summary, interactive=False)
-
+"""
 for run in cfg["runs"]:
+    if run.get("delete", False):
+        status = "deleted"
+        matrix, status = delete_entry(matrix, run["name"])
+        continue
+
     summary = summarize_atm_in(run["atm_in"])
     if summary is None:
         continue
