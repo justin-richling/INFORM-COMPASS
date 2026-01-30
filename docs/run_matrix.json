@@ -1,6 +1,6 @@
 [
   {
-    "run_name": "f.e30_cam6_4_120.FHIST_BGC.f09_f09_mg17.SOCRATES_nudgeUVTfull_withCOSP_tau6h.001_FAKE2",
+    "run_name": "f.e30_cam6_4_120.FHIST_BGC.f09_f09_mg17.SOCRATES_nudgeUVTfull_withCOSP_tau6h.001",
     "nudging": true,
     "nudged_vars": [
       "nudge_beg_day = 1",
@@ -204,10 +204,10 @@
     ],
     "source_atm_in": "atm_in",
     "atm_in_sha256": "f5cb7a876a1f69a592a2da7fe7b3369fc3508b29b133fbf70f44c6f631f3afec",
-    "snapshot_date": "2026-01-30T17:52:25.902997"
+    "snapshot_date": "2026-01-30T18:02:43.700422"
   },
   {
-    "run_name": "f.e30_cam6_4_120.FHIST_BGC.f09_f09_mg17.SOCRATES_nudgeUVTfull_withCOSP_tau6h.001_FAKE3",
+    "run_name": "f.e30_cam6_4_120.FHIST_BGC.f09_f09_mg17.SOCRATES_nudgeUVTfull_withCOSP_tau6h.001_FAKE",
     "nudging": true,
     "nudged_vars": [
       "nudge_beg_day = 1",
@@ -411,6 +411,6 @@
     ],
     "source_atm_in": "atm_in",
     "atm_in_sha256": "f5cb7a876a1f69a592a2da7fe7b3369fc3508b29b133fbf70f44c6f631f3afec",
-    "snapshot_date": "2026-01-30T17:52:25.903437"
+    "snapshot_date": "2026-01-30T18:02:43.700876"
   }
 ]
