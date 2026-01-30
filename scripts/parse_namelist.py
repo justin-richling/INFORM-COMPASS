@@ -1,4 +1,11 @@
-import re
+import re, os
+from datetime import datetime
+import hashlib
+
+def hash_file(path):
+    with open(path, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
 
 def load_cam_doc(docsies):
     fincl_blocks = {}
@@ -117,14 +124,17 @@ def summarize_atm_in(atm_in_path):
     fincl_dict, cosp_vars, nudge_vars, other_vars, empty_htapes = load_cam_doc(atm_in_path)
     if fincl_dict is None and cosp_vars is None and nudge_vars is None and other_vars is None and empty_htapes is None:
         return {
-            "run_name": "AHJK",  # or however you define it
-            "nudging": "AHJK",
-            "nudged_vars": "AHJK",
-            "cosp": "AHJK",
-            "cosp_vars": "AHJK",
-            "fincl": "AHJK",
-            "empty_htapes": "AHJK",
-            "other_vars": "AHJK"
+            "run_name": None,  # or however you define it
+            "nudging": None,
+            "nudged_vars": None,
+            "cosp": None,
+            "cosp_vars": None,
+            "fincl": None,
+            "empty_htapes": None,
+            "other_vars": None,
+            "source_atm_in": os.path.basename(atm_in_path),
+            "atm_in_sha256": hash_file(atm_in_path),
+            "snapshot_date": datetime.now(datetime.astimezone.utc).isoformat()
         }
 
     return {
@@ -135,5 +145,9 @@ def summarize_atm_in(atm_in_path):
         "cosp_vars": cosp_vars,
         "fincl": fincl_dict,
         "empty_htapes": empty_htapes,
-        "other_vars": other_vars
+        "other_vars": other_vars,
+        "source_atm_in": os.path.basename(atm_in_path),
+        "atm_in_sha256": hash_file(atm_in_path),
+       # "snapshot_date": datetime.now(datetime.astimezone.utc).isoformat()
+        "snapshot_date": datetime.utcnow().isoformat()
     }
