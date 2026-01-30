@@ -1,8 +1,24 @@
 import yaml
 import json
-import os
+import os, sys
 from parse_namelist import summarize_atm_in
 from pathlib import Path
+
+def push_github():
+    print("Pushing run_matrix.json changes to GitHub...")
+    #os.system("git config --global user.email 'github-actions[bot]@users.noreply.github.com'")
+    #os.system("git config --global user.name 'github-actions[bot]'")
+    os.system("git add docs/run_matrix.json")
+    os.system("git commit -m 'Update run matrix [skip ci]' || echo 'No changes to commit'")
+    os.system("git push origin HEAD:main")
+    print("Pushed changes to GitHub usccessful.")
+
+
+args = sys.argv
+if len(args) > 1:
+    print("Usage: python generate_exp_matrix.py push-github")
+    if args[1] == "push-github":
+        push_github()
 
 def load_matrix(path="run_matrix.json"):
     p = Path(path)
@@ -86,8 +102,9 @@ for run in cfg["runs"]:
     matrix, status = add_entry(matrix, summary, interactive=False)
     #if status in {"duplicate", "conflict"}:
     #    exit(1)  # fail workflow if desired
+    if status in {"duplicate", "conflict"}:
+        print("\tWARNING: Duplicate case name/atm_in/user_nl_cam. Skipping further processing for this run.")
 
-print("Loaded config")
 print("Config keys:", cfg.keys())
 print("Runs in YAML:", len(cfg.get("runs", [])))
 
