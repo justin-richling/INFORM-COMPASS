@@ -101,7 +101,9 @@ def add_entry(matrix, new_entry, interactive=False):
 def add_entry(matrix, new_entry, interactive=False):
     for existing in matrix:
         if existing["run_name"] == new_entry["run_name"]:
-            if existing["atm_in"] == new_entry["atm_in"]:
+            #if existing["atm_in"] == new_entry["atm_in"]:
+            if existing["atm_in_sha256"] == new_entry["atm_in_sha256"]:
+
                 print(f" Run '{new_entry['run_name']}' already exists (identical atm_in). Skipping.")
                 return matrix
             else:
