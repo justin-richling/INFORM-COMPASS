@@ -1,4 +1,6 @@
-import json, os, yaml
+import yaml
+import json
+import os
 from parse_namelist import summarize_atm_in
 
 def load_matrix(path="run_matrix.json"):
