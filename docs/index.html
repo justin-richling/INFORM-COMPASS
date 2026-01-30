@@ -16,9 +16,8 @@
 </head>
 <body>
   <h1>CESM Run Matrix</h1>
-  <div>
-    Total runs: <span id="total-count">0</span> |
-    Showing: <span id="filtered-count">0</span>
+  <div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
+    Showing 0 of 0 runs
   </div>
 
   <table id="matrix" class="display">
@@ -41,15 +40,13 @@
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <script>
-    // Reference to counts
-    const totalCountEl = document.getElementById("total-count");
-    const filteredCountEl = document.getElementById("filtered-count");
+    const countEl = document.getElementById("run-count");
 
     fetch("run_matrix.json")
       .then(r => r.json())
       .then(data => {
         const tableBody = document.querySelector("#matrix tbody");
-        
+
         data.forEach(run => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -64,27 +61,30 @@
           tableBody.appendChild(tr);
         });
 
-        // Initialize DataTables
         const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: 25,
           order: [[0, "asc"]]
         });
 
-        // Set total count
-        totalCountEl.textContent = data.length;
-        filteredCountEl.textContent = dt.rows({ search: 'applied' }).count();
+        function updateCount() {
+          const total = dt.rows().count();
+          const shown = dt.rows({ search: 'applied' }).count();
+          countEl.textContent = `Showing ${shown} of ${total} runs`;
+        }
 
-        // Update filtered count on search/filter
-        dt.on('search.dt', function() {
-          filteredCountEl.textContent = dt.rows({ search: 'applied' }).count();
-        });
+        // Initial update
+        updateCount();
+
+        // Update on search, filter, or redraw
+        dt.on('search.dt draw.dt', updateCount);
       })
       .catch(err => {
         console.error("Failed to load run_matrix.json:", err);
+        countEl.textContent = "Error loading run data";
       });
-
   </script>
+
   <p><em>Last updated:</em> <span id="last-updated"></span></p>
 <script>
 fetch("run_matrix.json", { method: "HEAD" })
