@@ -80,7 +80,7 @@ def diff_runs(old, new):
 
     return diffs
 
-
+"""
 def add_entry(matrix, new_entry, interactive=False):
     for existing in matrix:
         if existing["run_name"] == new_entry["run_name"]:
@@ -96,6 +96,26 @@ def add_entry(matrix, new_entry, interactive=False):
     matrix.insert(0, new_entry)
     print(f" Added new run: {new_entry['run_name']}")
     return matrix, "added"
+"""
+
+def add_entry(matrix, new_entry, interactive=False):
+    for existing in matrix:
+        if existing["run_name"] == new_entry["run_name"]:
+            if existing["atm_in"] == new_entry["atm_in"]:
+                print(f" Run '{new_entry['run_name']}' already exists (identical atm_in). Skipping.")
+                return matrix
+            else:
+                print(f" Run '{new_entry['run_name']}' exists but atm_in differs.")
+                if interactive:
+                    resp = input("Replace existing entry? [y/N]: ")
+                    if resp.lower() != "y":
+                        return matrix
+                matrix.remove(existing)
+                break
+
+    # prepend newest
+    matrix.insert(0, new_entry)
+    return matrix
 
 
 matrix = load_matrix("docs/run_matrix.json")
