@@ -54,30 +54,6 @@ def diff_runs(old, new):
 
     return diffs
 
-    
-"""
-def add_entry(matrix, new_entry, interactive=True):
-    for existing in matrix:
-        if existing["run_name"] == new_entry["run_name"]:
-            if existing["atm_in_sha256"] == new_entry["atm_in_sha256"]:
-                print(f"✔ Run '{new_entry['run_name']}' already exists (identical atm_in). Skipping.")
-                return matrix
-
-            # Same name, different content
-            print(f"⚠ Run name '{new_entry['run_name']}' already exists but atm_in differs.")
-            print(f"  Existing snapshot: {existing['snapshot_date']}")
-            print(f"  New snapshot:      {new_entry['snapshot_date']}")
-
-            if interactive:
-                resp = input("Add anyway as a new entry? [y/N]: ").strip().lower()
-                if resp != "y":
-                    print("⏭ Skipping.")
-                    return matrix
-
-    print(f" Adding new run: {new_entry['run_name']}")
-    matrix.append(new_entry)
-    return matrix
-"""
 
 def add_entry(matrix, new_entry, interactive=False):
     for existing in matrix:
@@ -95,7 +71,6 @@ def add_entry(matrix, new_entry, interactive=False):
     return matrix, "added"
 
 
-
 matrix = load_matrix("docs/run_matrix.json")
 
 with open("config/runs.yml") as f:
@@ -109,8 +84,8 @@ for run in cfg["runs"]:
 
     status = "added"
     matrix, status = add_entry(matrix, summary, interactive=False)
-    if status in {"duplicate", "conflict"}:
-        exit(1)  # fail workflow if desired
+    #if status in {"duplicate", "conflict"}:
+    #    exit(1)  # fail workflow if desired
 
 print("Loaded config")
 print("Config keys:", cfg.keys())
