@@ -88,7 +88,9 @@ def add_entry(matrix, new_entry, interactive=False):
 
 
 matrix = load_matrix("docs/run_matrix.json")
-
+matrix0 = len(matrix)
+matrix0 = len(matrix)
+print("Runs in matrix before check:", matrix0)
 with open("config/runs.yml") as f:
     cfg = yaml.safe_load(f)
 
@@ -102,13 +104,13 @@ for run in cfg["runs"]:
     matrix, status = add_entry(matrix, summary, interactive=False)
     #if status in {"duplicate", "conflict"}:
     #    exit(1)  # fail workflow if desired
-    if status in {"duplicate", "conflict"}:
-        print("\tWARNING: Duplicate case name/atm_in/user_nl_cam. Skipping further processing for this run.")
+    #if status in {"duplicate", "conflict"}:
+    #    print("\tWARNING: Duplicate case name/atm_in/user_nl_cam. Skipping further processing for this run.")
 
 print("Config keys:", cfg.keys())
 print("Runs in YAML:", len(cfg.get("runs", [])))
 
-print("Runs in matrix before write:", len(matrix))
-
+print("Runs in matrix after check (before write):", len(matrix))
+print("New runs added:", matrix0-len(matrix))
 with open("docs/run_matrix.json", "w") as f:
     json.dump(matrix, f, indent=2)
