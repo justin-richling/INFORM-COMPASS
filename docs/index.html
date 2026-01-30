@@ -16,6 +16,11 @@
 </head>
 <body>
   <h1>CESM Run Matrix</h1>
+  <div>
+    Total runs: <span id="total-count">0</span> |
+    Showing: <span id="filtered-count">0</span>
+  </div>
+
   <table id="matrix" class="display">
     <thead>
       <tr>
@@ -36,15 +41,17 @@
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <script>
-    const tableBody = document.querySelector("#matrix tbody");
+    // Reference to counts
+    const totalCountEl = document.getElementById("total-count");
+    const filteredCountEl = document.getElementById("filtered-count");
 
     fetch("run_matrix.json")
       .then(r => r.json())
       .then(data => {
-        console.log("Loaded runs:", data.length);
+        const tableBody = document.querySelector("#matrix tbody");
+        
         data.forEach(run => {
           const tr = document.createElement("tr");
-
           tr.innerHTML = `
             <td>${run.run_name}</td>
             <td>${run.nudging}</td>
@@ -54,23 +61,29 @@
             <td><pre>${(run.cosp_vars || []).join("\n")}</pre></td>
             <td><pre>${(run.other_vars || []).join("\n")}</pre></td>
           `;
-
           tableBody.appendChild(tr);
         });
 
-        // Initialize DataTables after rows exist
-        $(document).ready(function () {
-          $('#matrix').DataTable({
-            scrollX: true,
-            pageLength: 25,
-            order: [[0, "asc"]]
-          });
+        // Initialize DataTables
+        const dt = $('#matrix').DataTable({
+          scrollX: true,
+          pageLength: 25,
+          order: [[0, "asc"]]
+        });
+
+        // Set total count
+        totalCountEl.textContent = data.length;
+        filteredCountEl.textContent = dt.rows({ search: 'applied' }).count();
+
+        // Update filtered count on search/filter
+        dt.on('search.dt', function() {
+          filteredCountEl.textContent = dt.rows({ search: 'applied' }).count();
         });
       })
       .catch(err => {
         console.error("Failed to load run_matrix.json:", err);
-        tableBody.innerHTML = `<tr><td colspan="7">Error loading JSON data</td></tr>`;
       });
+
   </script>
   <p><em>Last updated:</em> <span id="last-updated"></span></p>
 <script>
