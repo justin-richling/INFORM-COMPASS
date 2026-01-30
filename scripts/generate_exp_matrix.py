@@ -133,28 +133,16 @@ matrix = load_matrix("docs/run_matrix.json")
 matrix0 = len(matrix)
 matrix0 = len(matrix)
 print("Runs in matrix before check:", matrix0)
-with open("config/runs.yml") as f:
-    cfg = yaml.safe_load(f)
 
-"""
-# 1️⃣ Handle deletions first
-for run in cfg["runs"]:
-    if run.get("delete", False):
-        status = "deleted"
-        matrix, status = delete_entry(matrix, run["name"])"""
-"""
-# 2️⃣ Handle additions / updates
-for run in cfg["runs"]:
-    if run.get("delete", False):
-        continue
+cfg_path = "config/runs.yml"
+if os.path.exists(cfg_path):
+    with open("config/runs.yml") as f:
+        cfg = yaml.safe_load(f)
+else:
+    print(f" {cfg_path} not found, skipping YAML load")
+    cfg = {"runs": []}  # empty default
 
-    summary = summarize_atm_in(run["atm_in"])
-    if summary is None:
-        continue
 
-    summary["run_name"] = run["name"]
-    matrix = add_entry(matrix, summary, interactive=False)
-"""
 for run in cfg["runs"]:
     if run.get("delete", False):
         status = "deleted"
@@ -168,10 +156,6 @@ for run in cfg["runs"]:
 
     status = "added"
     matrix, status = add_entry(matrix, summary, interactive=False)
-    #if status in {"duplicate", "conflict"}:
-    #    exit(1)  # fail workflow if desired
-    #if status in {"duplicate", "conflict"}:
-    #    print("\tWARNING: Duplicate case name/atm_in/user_nl_cam. Skipping further processing for this run.")
 
 print("Config keys:", cfg.keys())
 print("Runs in YAML:", len(cfg.get("runs", [])))
