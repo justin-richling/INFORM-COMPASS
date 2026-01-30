@@ -100,24 +100,37 @@ def add_entry(matrix, new_entry, interactive=False):
 
 def add_entry(matrix, new_entry, interactive=False):
     for existing in matrix:
-        if existing["run_name"] == new_entry["run_name"]:
-            #if existing["atm_in"] == new_entry["atm_in"]:
-            if existing["atm_in_sha256"] == new_entry["atm_in_sha256"]:
+        # --- Guard against malformed / legacy entries ---
+        if not isinstance(existing, dict):
+            print(" Skipping non-dict entry in matrix")
+            continue
 
+        if existing.get("run_name") == new_entry.get("run_name"):
+
+            # --- Preferred identity check: hash ---
+            if existing.get("atm_in_sha256") == new_entry.get("atm_in_sha256"):
                 print(f" Run '{new_entry['run_name']}' already exists (identical atm_in). Skipping.")
-                return matrix
-            else:
-                print(f" Run '{new_entry['run_name']}' exists but atm_in differs.")
-                if interactive:
-                    resp = input("Replace existing entry? [y/N]: ")
-                    if resp.lower() != "y":
-                        return matrix
-                matrix.remove(existing)
-                break
+                return matrix, "duplicate"
 
-    # prepend newest
+            # --- Same name, different content ---
+            print(f" Same run_name but different atm_in")
+            print(f"  Existing snapshot: {existing.get('snapshot_date', 'unknown')}")
+            print(f"  New snapshot:      {new_entry.get('snapshot_date', 'unknown')}")
+
+            # Optional diff view
+            try:
+                diffs = diff_runs(existing, new_entry)
+                print(" Differences:", diffs)
+            except Exception as e:
+                print("⚠ Could not diff runs:", e)
+
+            return matrix, "conflict"
+
+    # --- New run: prepend so newest appears first ---
     matrix.insert(0, new_entry)
-    return matrix
+    print(f" Added new run: {new_entry.get('run_name')}")
+    return matrix, "added"
+
 
 
 matrix = load_matrix("docs/run_matrix.json")
