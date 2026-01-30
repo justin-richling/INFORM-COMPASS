@@ -41,7 +41,6 @@ def load_cam_doc(docsies):
 
                     # ---- fincl* blocks ----
                     if key_lower.startswith("cosp") or "cosp".lower() in key_lower:
-                        print("YEAH?")
                         current_key = key
                         current_type = "cosp"
                         cosp_vars[current_key] = [line.strip()]
