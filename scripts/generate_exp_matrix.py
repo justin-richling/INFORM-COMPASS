@@ -43,7 +43,7 @@ for run in cfg["runs"]:
     if summary is None:
         continue
     summary["run_name"] = run["name"]
-    matrix = add_entry(matrix, summary)
+    matrix = add_entry(matrix, summary, interactive=False)
 
 print("Loaded config")
 print("Config keys:", cfg.keys())
