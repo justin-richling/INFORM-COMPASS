@@ -27,7 +27,8 @@ def delete_entry(matrix, run_name):
         print(f" Deleted run: {run_name}")
     else:
         print(f" Delete requested, but run not found: {run_name}")
-    return new_matrix
+    #return new_matrix
+    return new_matrix, "deleted"
 
 
 def load_matrix(path="run_matrix.json"):
