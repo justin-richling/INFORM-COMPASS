@@ -15,11 +15,6 @@ def push_github():
 
 
 args = sys.argv
-if len(args) > 1:
-    print("Usage: python generate_exp_matrix.py push-github")
-    if args[1] == "push-github":
-        push_github()
-
 
 def delete_entry(matrix, run_name):
     new_matrix = [r for r in matrix if r.get("run_name") != run_name]
@@ -185,3 +180,9 @@ print("Runs in matrix after check (before write):", len(matrix))
 print("New runs added:", matrix0-len(matrix))
 with open("docs/run_matrix.json", "w") as f:
     json.dump(matrix, f, indent=2)
+
+
+if len(args) > 1:
+    print("Usage: python generate_exp_matrix.py push-github")
+    if args[1] == "push-github":
+        push_github()
