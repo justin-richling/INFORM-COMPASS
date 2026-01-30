@@ -20,6 +20,16 @@ if len(args) > 1:
     if args[1] == "push-github":
         push_github()
 
+
+def delete_entry(matrix, run_name):
+    new_matrix = [r for r in matrix if r.get("run_name") != run_name]
+    if len(new_matrix) < len(matrix):
+        print(f" Deleted run: {run_name}")
+    else:
+        print(f" Delete requested, but run not found: {run_name}")
+    return new_matrix
+
+
 def load_matrix(path="run_matrix.json"):
     p = Path(path)
     if not p.exists() or p.stat().st_size == 0:
@@ -94,6 +104,23 @@ matrix0 = len(matrix)
 print("Runs in matrix before check:", matrix0)
 with open("config/runs.yml") as f:
     cfg = yaml.safe_load(f)
+
+# 1️⃣ Handle deletions first
+for run in cfg["runs"]:
+    if run.get("delete", False):
+        matrix = delete_entry(matrix, run["name"])
+
+# 2️⃣ Handle additions / updates
+for run in cfg["runs"]:
+    if run.get("delete", False):
+        continue
+
+    summary = summarize_atm_in(run["atm_in"])
+    if summary is None:
+        continue
+
+    summary["run_name"] = run["name"]
+    matrix = add_entry(matrix, summary, interactive=False)
 
 for run in cfg["runs"]:
     summary = summarize_atm_in(run["atm_in"])
