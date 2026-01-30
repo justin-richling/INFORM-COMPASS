@@ -82,7 +82,8 @@ def add_entry(matrix, new_entry, interactive=False):
             diffs = diff_runs(existing, new_entry)
             print("📝 Differences:", diffs)
             return matrix, "conflict"
-    matrix.append(new_entry)
+    #matrix.append(new_entry)
+    matrix.insert(0, new_entry)
     print(f" Added new run: {new_entry['run_name']}")
     return matrix, "added"
 
