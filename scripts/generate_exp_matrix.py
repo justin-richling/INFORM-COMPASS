@@ -10,7 +10,6 @@ def load_matrix(path="run_matrix.json"):
         return json.load(f)
     
 
-
 def add_entry(matrix, new_entry, interactive=True):
     for existing in matrix:
         if existing["run_name"] == new_entry["run_name"]:
@@ -34,37 +33,17 @@ def add_entry(matrix, new_entry, interactive=True):
     return matrix
 
 
-
-matrix = load_matrix("run_matrix.json")
-
-"""
-for atm_in_path in atm_in_paths:
-    entry = summarize_atm_in(atm_in_path)
-    if entry is None:
-        continue
-
-    matrix = add_entry(matrix, entry)
-"""
-
-
-
-
-
+matrix = load_matrix("docs/run_matrix.json")
 
 with open("config/runs.yml") as f:
     cfg = yaml.safe_load(f)
 
-#matrix = []
-
 for run in cfg["runs"]:
     summary = summarize_atm_in(run["atm_in"])
-    #entry = summarize_atm_in(atm_in_path)
     if summary is None:
         continue
     summary["run_name"] = run["name"]
-
     matrix = add_entry(matrix, summary)
-    #matrix.append(summary)
 
 print("Loaded config")
 print("Config keys:", cfg.keys())
