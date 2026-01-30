@@ -161,7 +161,7 @@ print("Config keys:", cfg.keys())
 print("Runs in YAML:", len(cfg.get("runs", [])))
 
 print("Runs in matrix after check (before write):", len(matrix))
-print("New runs added:", matrix0-len(matrix))
+print("New runs added:", len(matrix) - matrix0)
 with open("docs/run_matrix.json", "w") as f:
     json.dump(matrix, f, indent=2)
 
