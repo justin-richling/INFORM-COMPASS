@@ -161,7 +161,14 @@ print("Config keys:", cfg.keys())
 print("Runs in YAML:", len(cfg.get("runs", [])))
 
 print("Runs in matrix after check (before write):", len(matrix))
-print("New runs added:", len(matrix) - matrix0)
+diff = len(matrix) - matrix0
+if diff> 0:
+    print("New run(s) added:", diff)
+elif diff < 0:
+    print("Run(s) deleted:", abs(diff))
+else:
+    print("No changes to runs.")
+
 with open("docs/run_matrix.json", "w") as f:
     json.dump(matrix, f, indent=2)
 
