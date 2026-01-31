@@ -19,7 +19,8 @@
       cursor: pointer;
       color: #007bff;
     }
-    .tooltip:hover::after {
+
+    .tooltip::after {
       content: attr(data-tooltip);
       position: absolute;
       left: 0;
@@ -28,12 +29,20 @@
       color: #fff;
       padding: 6px;
       border-radius: 4px;
-      white-space: pre; /* preserve line breaks */
+      white-space: pre-wrap;       /* allow line breaks and wrap text */
+      word-wrap: break-word;       /* break long words if needed */
+      overflow-wrap: break-word;   /* better cross-browser support */
       z-index: 100;
       width: max-content;
-      max-width: 400px;
+      max-width: 400px;            /* constrain tooltip width */
       margin-top: 5px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      display: none;               /* initially hidden */
+    }
+
+    /* Show tooltip on hover */
+    .tooltip:hover::after {
+      display: block;
     }
   </style>
 </head>
