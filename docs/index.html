@@ -12,6 +12,29 @@
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 5px; font-size: 0.9em; vertical-align: top; }
     td pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+
+    /* Tooltip styling */
+    .tooltip {
+      position: relative;
+      cursor: pointer;
+      color: #007bff;
+    }
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 0;
+      top: 100%;
+      background: #333;
+      color: #fff;
+      padding: 6px;
+      border-radius: 4px;
+      white-space: pre; /* preserve line breaks */
+      z-index: 100;
+      width: max-content;
+      max-width: 400px;
+      margin-top: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
@@ -40,6 +63,26 @@
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <script>
+    // Tooltip definitions
+    const tooltips = {
+      "Nudge_Uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
+      "Nudge_Ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
+      "Nudge_Hwin_lat0": "Specify the horizontal center of the window (lat0) in degrees. [-90., +90.]",
+      "Nudge_Hwin_lon0": "Specify the horizontal center of the window (lon0) in degrees. [0., 360.]",
+      "Nudge_Hwin_latWidth": "Specify the lat width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
+      "Nudge_Hwin_lonWidth": "Specify the lon width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
+      "Nudge_Vwin_Hindex": "Vertical window high index",
+      "Nudge_Vwin_Lindex": "Vertical window low index",
+      "Nudge_Vwin_Hdelta": "Vertical window high delta",
+      "Nudge_Vwin_Ldelta": "Vertical window low delta",
+      "Nudge_Vwin_Invert": "A logical flag used to invert the horizontal window function to get its complement.\nTrue/False",
+      "Nudge_Hwin_latDelta": "Horizontal lat delta",
+      "Nudge_Hwin_lonDelta": "Horizontal lon delta",
+      "Nudge_Hwin_Invert": "A logical flag used to invert the horizontal window function to get its complement.\n(e.g. to nudge outside a given window)\nTrue/False",
+      "Nudge_TimeScale_Opt": "Select the timescale for the relaxation:\nWEAK = Constant time scale based on the interval of Target values.\nSTRONG = Variable timescale which gets stronger near each Target time.\n0 = WEAK\n1 = STRONG",
+      "Nudge_Force_Opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
+    };
+
     const countEl = document.getElementById("run-count");
 
     fetch("run_matrix.json")
@@ -47,24 +90,32 @@
       .then(data => {
         const tableBody = document.querySelector("#matrix tbody");
 
+        // Helper function to wrap variables in tooltips
+        function wrapTooltip(varString) {
+          let cleanVar = varString.split("=")[0].trim(); // get variable name
+          let tooltipText = tooltips[cleanVar] || "";
+          return `<span class="tooltip" data-tooltip="${tooltipText}">${varString}</span>`;
+        }
+
         data.forEach(run => {
           const tr = document.createElement("tr");
+
           tr.innerHTML = `
             <td>${run.run_name}</td>
             <td>${run.nudging}</td>
             <td>${run.cosp}</td>
-            <td>${Object.keys(run.fincl || {}).join(", ")}</td>
-            <td><pre>${(run.nudged_vars || []).join("\n")}</pre></td>
-            <td><pre>${(run.cosp_vars || []).join("\n")}</pre></td>
-            <td><pre>${(run.other_vars || []).join("\n")}</pre></td>
+            <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
+            <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+            <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+            <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
           `;
+
           tableBody.appendChild(tr);
         });
 
         const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: 25,
-          // order: [[0, "asc"]]
           order: []
         });
 
@@ -74,10 +125,7 @@
           countEl.textContent = `Showing ${shown} of ${total} runs`;
         }
 
-        // Initial update
         updateCount();
-
-        // Update on search, filter, or redraw
         dt.on('search.dt draw.dt', updateCount);
       })
       .catch(err => {
@@ -87,12 +135,12 @@
   </script>
 
   <p><em>Last updated:</em> <span id="last-updated"></span></p>
-<script>
-fetch("run_matrix.json", { method: "HEAD" })
-  .then(r => {
-    document.getElementById("last-updated").textContent =
-      r.headers.get("Last-Modified");
-  });
-</script>
+  <script>
+    fetch("run_matrix.json", { method: "HEAD" })
+      .then(r => {
+        document.getElementById("last-updated").textContent =
+          r.headers.get("Last-Modified");
+      });
+  </script>
 </body>
 </html>
