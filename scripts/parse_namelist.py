@@ -122,17 +122,17 @@ def load_cam_doc(docsies):
 def summarize_atm_in(atm_in_path):
     fincl_dict, cosp_vars, nudge_vars, other_vars, empty_htapes = load_cam_doc(atm_in_path)
     # normalize all nudged vars to lowercase
-    nudge_atm_in_normalized = []
+    nudge_atm_in = []
     for v in nudge_vars:
         # split at the first '='
         if '=' in v:
             lhs, rhs = v.split('=', 1)
             lhs = lhs.strip().lower()        # lowercase only the variable name
             rhs = rhs.strip()                # keep the value exactly as-is
-            nudge_atm_in_normalized.append(f"{lhs} = {rhs}")
+            nudge_atm_in.append(f"{lhs} = {rhs}")
         else:
             # if no '=', just lowercase the whole string (rare case)
-            nudge_atm_in_normalized.append(v.lower())
+            nudge_atm_in.append(v.lower())
         with open(atm_in_path, "rb") as f:
             data = f.read()
         sha256 = hashlib.sha256(data).hexdigest()
