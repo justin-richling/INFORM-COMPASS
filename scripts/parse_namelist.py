@@ -122,7 +122,7 @@ def load_cam_doc(docsies):
 def summarize_atm_in(atm_in_path):
     fincl_dict, cosp_vars, nudge_vars, other_vars, empty_htapes = load_cam_doc(atm_in_path)
     # normalize all nudged vars to lowercase
-    nudge_atm_in = [v.replace("\t\t", " ").upper() for v in nudge_vars]
+    nudge_atm_in = [v.replace("\t\t", " ").lower() for v in nudge_vars]
     with open(atm_in_path, "rb") as f:
         data = f.read()
     sha256 = hashlib.sha256(data).hexdigest()
