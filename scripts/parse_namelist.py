@@ -121,6 +121,8 @@ def load_cam_doc(docsies):
 
 def summarize_atm_in(atm_in_path):
     fincl_dict, cosp_vars, nudge_vars, other_vars, empty_htapes = load_cam_doc(atm_in_path)
+    # normalize all nudged vars to lowercase
+    nudge_atm_in = [v.replace("\t\t", " ").upper() for v in nudge_vars]
     with open(atm_in_path, "rb") as f:
         data = f.read()
     sha256 = hashlib.sha256(data).hexdigest()
@@ -143,8 +145,8 @@ def summarize_atm_in(atm_in_path):
     
     return {
         "run_name": atm_in_path.split("/")[-2],  # or however you define it
-        "nudging": len(nudge_vars) > 0,
-        "nudged_vars": nudge_vars,
+        "nudging": len(nudge_atm_in) > 0,
+        "nudged_vars": nudge_atm_in,
         "cosp": len(cosp_vars) > 0,
         "cosp_vars": cosp_vars,
         "fincl": fincl_dict,
