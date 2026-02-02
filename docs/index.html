@@ -82,7 +82,7 @@
 
   <script>
     // Tooltip definitions
-    /*
+    ///*
     const tooltips = {
     "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
     "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
@@ -101,9 +101,9 @@
     "nudge_timescale_opt": "Select the timescale for the relaxation:\nWEAK = Constant time scale based on the interval of Target values.\nSTRONG = Variable timescale which gets stronger near each Target time.\n0 = WEAK\n1 = STRONG",
     "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
     };
-    */
+    //*/
 
-    ///*
+    /*
     let tooltips = {};
     Promise.all([
       fetch("run_matrix.json").then(r => r.json()),
@@ -130,7 +130,7 @@
 
       // DataTables init stays the same
     });
-
+    */
 
     const countEl = document.getElementById("run-count");
 
