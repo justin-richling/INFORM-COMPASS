@@ -22,3 +22,4 @@ build/
 *.egg-info/
 
 config/runs.yml
+docs/*copy.*
