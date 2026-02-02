@@ -108,15 +108,10 @@
         const text = tooltips[key];
         if (!text) return label;
 
-        const id = "tt-" + Math.random().toString(36).slice(2);
-
         return `
-          <span class="tooltip-trigger" data-tooltip-id="${id}">
+          <span class="tooltip" data-tooltip="${text}">
             ${label}
           </span>
-          <div id="${id}" class="tooltip-box">
-            ${marked.parse(text)}
-          </div>
         `;
       }
 
