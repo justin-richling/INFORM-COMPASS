@@ -1,3 +1,4 @@
+# CESM Run Matrix Config File
 runs:
   - name: F2000_nudge_TQ
     atm_in: /glade/campaign/foo/bar/F2000/atm_in
