@@ -63,7 +63,9 @@ td pre {
 #table-container {
   max-height: 800px;          /* make it taller — adjust as needed */
   height: 800px;              /* fixed height ensures sticky headers work well */
-  overflow: auto;             /* enables both vertical and horizontal scroll */
+  /*overflow: auto;             /* enables both vertical and horizontal scroll */
+  overflow-x: scroll;   /* always show horizontal scroll */
+  overflow-y: auto;
 }
 
 #matrix {
