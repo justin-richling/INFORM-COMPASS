@@ -7,59 +7,25 @@
   <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="style.css">
-
-  <!--<style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 5px; font-size: 0.9em; vertical-align: top; }
-    td pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
-
-    /* Tooltip styling */
-    .tooltip {
-      position: relative;
-      cursor: pointer;
-      color: #007bff;
-    }
-
-    .tooltip::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      left: 0;
-      top: 100%;
-      background: #333;
-      color: #fff;
-      padding: 6px;
-      border-radius: 4px;
-      white-space: pre-wrap;       /* allow line breaks and wrap text */
-      word-wrap: break-word;       /* break long words if needed */
-      overflow-wrap: break-word;   /* better cross-browser support */
-      z-index: 100;
-      width: max-content;
-      max-width: 400px;            /* constrain tooltip width */
-      margin-top: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      display: none;               /* initially hidden */
-    }
-
-    /* Show tooltip on hover */
-    .tooltip:hover::after {
-      display: block;
-    }
-  </style>-->
 </head>
 <body>
   <h1>INFORM/COMPASS CESM Run Matrix</h1>
-  <div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
-    Showing 0 of 0 runs
+  <div id="header-bar">
+    <div id="run-count">Showing 0 of 0 runs</div>
+    <div><em>Last updated:</em> <span id="last-updated"></span></div>
   </div>
 
-  <p><em>Last updated:</em> <span id="last-updated"></span></p>
+  <!--<div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
+    Showing 0 of 0 runs
+  </div>-->
+
+  <!--<p><em>Last updated:</em> <span id="last-updated"></span></p>
   <script>
     fetch("run_matrix.json", { method: "HEAD" })
       .then(r => {
         document.getElementById("last-updated").textContent =
           r.headers.get("Last-Modified");
-      });
+      });-->
   </script>
 
   <table id="matrix" class="display">
