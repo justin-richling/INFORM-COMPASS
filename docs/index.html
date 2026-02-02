@@ -58,7 +58,63 @@
       "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
     };
 
+
     const countEl = document.getElementById("run-count");
+
+    // Add a timestamp to force fresh fetch
+    const url = `run_matrix.json?ts=${new Date().getTime()}`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        const tableBody = document.querySelector("#matrix tbody");
+
+        // Helper function to wrap variables in tooltips
+        function wrapTooltip(varString) {
+          let cleanVar = varString.split("=")[0].trim(); // variable name
+          let tooltipText = tooltips[cleanVar] || "";
+          return `<span class="tooltip" data-tooltip="${tooltipText}">${varString}</span>`;
+        }
+
+        data.forEach(run => {
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+            <td>${run.run_name}</td>
+            <td>${run.nudging}</td>
+            <td>${run.cosp}</td>
+            <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
+            <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+            <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+            <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+          `;
+
+          tableBody.appendChild(tr);
+        });
+
+        const dt = $('#matrix').DataTable({
+          scrollX: true,
+          pageLength: 25,
+          order: []
+        });
+
+        function updateCount() {
+          const total = dt.rows().count();
+          const shown = dt.rows({ search: 'applied' }).count();
+          countEl.textContent = `Showing ${shown} of ${total} runs`;
+        }
+
+        updateCount();
+        dt.on('search.dt draw.dt', updateCount);
+      })
+      .catch(err => {
+        console.error("Failed to load run_matrix.json:", err);
+        countEl.textContent = "Error loading run data";
+      });
+
+
+
+    /*const countEl = document.getElementById("run-count");
 
     // ----- Fetch run data -----
     fetch("run_matrix.json")
@@ -150,7 +206,7 @@
       .then(r => {
         document.getElementById("last-updated").textContent =
           r.headers.get("Last-Modified");
-      });
+      });*/
   </script>
 </body>
 </html>
