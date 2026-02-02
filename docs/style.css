@@ -1,0 +1,53 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 5px;
+  font-size: 0.9em;
+  vertical-align: top;
+}
+
+td pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Tooltip styling */
+.tooltip {
+  position: relative;
+  cursor: pointer;
+  color: #007bff;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: #333;
+  color: #fff;
+  padding: 6px;
+  border-radius: 4px;
+  white-space: pre-wrap;       /* allow line breaks and wrap text */
+  word-wrap: break-word;       /* break long words if needed */
+  overflow-wrap: break-word;   /* better cross-browser support */
+  z-index: 100;
+  width: max-content;
+  max-width: 400px;            /* constrain tooltip width */
+  margin-top: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  display: none;               /* initially hidden */
+}
+
+/* Show tooltip on hover */
+.tooltip:hover::after {
+  display: block;
+}
