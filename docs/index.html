@@ -91,33 +91,35 @@
     "nudge_timescale_opt": "Select the timescale for the relaxation:\nWEAK = Constant time scale based on the interval of Target values.\nSTRONG = Variable timescale which gets stronger near each Target time.\n0 = WEAK\n1 = STRONG",
     "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
     };
+
     /*
     let tooltips = {};
     Promise.all([
       fetch("run_matrix.json").then(r => r.json()),
       fetch("tooltips.json").then(r => r.json())
-      ]).then(([data, tooltipData]) => {
+    ]).then(([data, tooltipData]) => {
 
-    tooltips = tooltipData;*/
+      tooltips = tooltipData;
 
-    const tableBody = document.querySelector("#matrix tbody");
+      const tableBody = document.querySelector("#matrix tbody");
 
-    data.forEach(run => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${run.run_name}</td>
-        <td>${run.nudging}</td>
-        <td>${run.cosp}</td>
-        <td>${Object.keys(run.fincl || {}).join(", ")}</td>
-        <td><pre>${(run.nudged_vars || []).join("\n")}</pre></td>
-        <td><pre>${(run.cosp_vars || []).join("\n")}</pre></td>
-        <td><pre>${(run.other_vars || []).join("\n")}</pre></td>
+      data.forEach(run => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${run.run_name}</td>
+          <td>${run.nudging}</td>
+          <td>${run.cosp}</td>
+          <td>${Object.keys(run.fincl || {}).join(", ")}</td>
+          <td><pre>${(run.nudged_vars || []).join("\n")}</pre></td>
+          <td><pre>${(run.cosp_vars || []).join("\n")}</pre></td>
+          <td><pre>${(run.other_vars || []).join("\n")}</pre></td>
         `;
-      tableBody.appendChild(tr);
-    });
+        tableBody.appendChild(tr);
+      });
 
-    // DataTables init stays the same
-    //});
+      // DataTables init stays the same
+    });
+    */
 
     const countEl = document.getElementById("run-count");
 
