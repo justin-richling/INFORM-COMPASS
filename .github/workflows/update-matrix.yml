@@ -1,4 +1,4 @@
-name: Update CESM run matrix
+name: Update INFORM/COMPASS CESM run matrix
 
 on:
   push:
