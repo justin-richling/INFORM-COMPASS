@@ -7,14 +7,20 @@
   <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Optional marked.js for tooltip formatting -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
+
   <div id="header-bar">
     <div><h1>INFORM/COMPASS CESM Run Matrix</h1></div>
     <div><em>Last updated:</em> <span id="last-updated"></span></div>
   </div>
 
-  <div id="run-count">Showing 0 of 0 runs</div>
+  <div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
+    Showing 0 of 0 runs
+  </div>
 
   <div id="table-container">
     <table id="matrix" class="display">
@@ -30,10 +36,9 @@
   <!-- jQuery and DataTables JS -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <script>
-    // Tooltips
+    // ----- Tooltip definitions -----
     const tooltips = {
       "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
       "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
@@ -55,50 +60,55 @@
 
     const countEl = document.getElementById("run-count");
 
-    // Fetch last-modified date
-    fetch("run_matrix.json", { method: "HEAD" })
-      .then(r => {
-        document.getElementById("last-updated").textContent = r.headers.get("Last-Modified");
-      });
-
-    // Fetch run matrix data
+    // ----- Fetch run data -----
     fetch("run_matrix.json")
       .then(r => r.json())
       .then(data => {
         const tbody = document.querySelector("#matrix tbody");
 
-        // Helper to wrap tooltip text
+        // Helper to wrap tooltip
         function wrapTooltip(label, key) {
           const text = tooltips[key] || "";
           if (!text) return label;
           return `<span class="tooltip" data-tooltip="${text}">${label}</span>`;
         }
 
+        // Fill table
         data.forEach(run => {
-          // Top-level row
+          // Master row
           const tr = document.createElement("tr");
           tr.classList.add("master-row");
           tr.innerHTML = `<td class="run-name">${run.run_name}</td>`;
           tbody.appendChild(tr);
 
-          // Detail row
+          // Detail row (nested table)
           const detailTr = document.createElement("tr");
           detailTr.classList.add("detail-row");
           detailTr.style.display = "none";
+
           detailTr.innerHTML = `
             <td>
               <table class="nested">
                 <tr>
-                  <th>Nudging</th><th>COSP</th><th>FINCL Keys</th><th>Nudged Vars</th>
-                  <th>COSP Vars</th><th>Other Vars</th>
+                  <th>Nudging</th><th>COSP</th><th>FINCL Keys</th>
+                  <th>Nudged Vars</th><th>COSP Vars</th><th>Other Vars</th>
                 </tr>
                 <tr>
                   <td>${wrapTooltip(run.nudging, run.nudging)}</td>
                   <td>${wrapTooltip(run.cosp, run.cosp)}</td>
                   <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k, k)).join(", ")}</td>
-                  <td><pre>${(run.nudged_vars || []).map(v => wrapTooltip(v.split("=")[0].trim(), v.split("=")[0].trim())).join("\n")}</pre></td>
-                  <td><pre>${(run.cosp_vars || []).map(v => wrapTooltip(v.split("=")[0].trim(), v.split("=")[0].trim())).join("\n")}</pre></td>
-                  <td><pre>${(run.other_vars || []).map(v => wrapTooltip(v.split("=")[0].trim(), v.split("=")[0].trim())).join("\n")}</pre></td>
+                  <td><pre>${(run.nudged_vars || []).map(v => {
+                    const name = v.split("=")[0].trim();
+                    return wrapTooltip(v, name);
+                  }).join("\n")}</pre></td>
+                  <td><pre>${(run.cosp_vars || []).map(v => {
+                    const name = v.split("=")[0].trim();
+                    return wrapTooltip(v, name);
+                  }).join("\n")}</pre></td>
+                  <td><pre>${(run.other_vars || []).map(v => {
+                    const name = v.split("=")[0].trim();
+                    return wrapTooltip(v, name);
+                  }).join("\n")}</pre></td>
                 </tr>
               </table>
             </td>
@@ -111,25 +121,35 @@
           });
         });
 
-        // Initialize DataTable on master table
+        // ----- Initialize DataTable -----
         const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: 25,
           order: []
         });
 
+        // ----- Update run count -----
         function updateCount() {
-          const total = dt.rows().count();
-          const shown = dt.rows({ search: 'applied' }).count();
+          const total = $('#matrix tbody tr.master-row').length;
+          const shown = dt.rows({ search: 'applied' }).nodes()
+            .toArray()
+            .filter(row => row.classList.contains('master-row')).length;
           countEl.textContent = `Showing ${shown} of ${total} runs`;
         }
-
         updateCount();
         dt.on('search.dt draw.dt', updateCount);
+
       })
       .catch(err => {
         console.error("Failed to load run_matrix.json:", err);
         countEl.textContent = "Error loading run data";
+      });
+
+    // ----- Last updated -----
+    fetch("run_matrix.json", { method: "HEAD" })
+      .then(r => {
+        document.getElementById("last-updated").textContent =
+          r.headers.get("Last-Modified");
       });
   </script>
 </body>

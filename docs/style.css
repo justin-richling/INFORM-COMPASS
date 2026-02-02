@@ -79,3 +79,19 @@ td pre {
   background: #f1f1f1; /* background so text is readable */
   z-index: 10;         /* make sure headers are above table body */
 }
+
+
+#matrix td.run-name {
+  padding-left: 0.5em; /* optional slight padding */
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.detail-row td {
+  padding: 0; /* remove extra indentation from nested table */
+}
+
+.detail-row table.nested {
+  width: 100%;
+  border-collapse: collapse;
+}
