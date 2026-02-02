@@ -60,6 +60,7 @@
     };
 
     const countEl = document.getElementById("run-count");
+    const tableBody = document.querySelector("#matrix tbody");
 
     // Force fresh fetch to avoid caching
     const url = `run_matrix.json?ts=${new Date().getTime()}`;
@@ -67,27 +68,26 @@
     fetch(url)
       .then(r => r.json())
       .then(data => {
-        const tbody = document.querySelector("#matrix tbody");
 
+        // Helper function: wrap with tooltip only if exists
         function wrapTooltip(varString) {
           const key = varString.split("=")[0].trim();
-          const text = tooltips[key] || "";
-          return `<span class="tooltip" data-tooltip="${text}">${varString}</span>`;
+          const text = tooltips[key];
+          return text ? `<span class="tooltip" data-tooltip="${text}">${varString}</span>` : varString;
         }
 
+        // Populate table with master/detail rows
         data.forEach(run => {
-          // --- Master row with run name ---
-          const tr = document.createElement("tr");
-          tr.classList.add("master-row");
-          tr.innerHTML = `<td class="run-name">${run.run_name}</td>`;
-          tbody.appendChild(tr);
+          const trMaster = document.createElement("tr");
+          trMaster.classList.add("master-row");
+          trMaster.innerHTML = `<td class="run-name">${run.run_name}</td>`;
+          tableBody.appendChild(trMaster);
 
-          // --- Detail row with nested table ---
-          const detailTr = document.createElement("tr");
-          detailTr.classList.add("detail-row");
-          detailTr.style.display = "none"; // hidden initially
+          const trDetail = document.createElement("tr");
+          trDetail.classList.add("detail-row");
+          trDetail.style.display = "none"; // hidden initially
 
-          detailTr.innerHTML = `
+          trDetail.innerHTML = `
             <td>
               <table class="nested">
                 <thead>
@@ -113,12 +113,7 @@
               </table>
             </td>
           `;
-          tbody.appendChild(detailTr);
-
-          // --- Toggle detail row on click ---
-          tr.addEventListener("click", () => {
-            detailTr.style.display = detailTr.style.display === "none" ? "" : "none";
-          });
+          tableBody.appendChild(trDetail);
         });
 
         // ----- Initialize DataTable -----
@@ -128,15 +123,20 @@
           order: []
         });
 
+        // ----- Delegate click for master rows -----
+        $('#matrix tbody').on('click', 'tr.master-row', function() {
+          const detailRow = $(this).next('tr.detail-row');
+          detailRow.toggle();
+        });
+
         // ----- Update run count -----
         function updateCount() {
-          const total = tbody.querySelectorAll('tr.master-row').length;
+          const total = tableBody.querySelectorAll('tr.master-row').length;
           const shown = dt.rows({ search: 'applied' }).nodes()
                         .toArray()
                         .filter(r => r.classList.contains('master-row')).length;
           countEl.textContent = `Showing ${shown} of ${total} runs`;
         }
-
         updateCount();
         dt.on('search.dt draw.dt', updateCount);
 
@@ -146,7 +146,7 @@
         countEl.textContent = "Error loading run data";
       });
 
-    // ----- Last updated -----
+    // ----- Last updated (GMT + Local) -----
     fetch("run_matrix.json", { method: "HEAD" })
       .then(r => {
         const gmt = new Date(r.headers.get("Last-Modified"));
