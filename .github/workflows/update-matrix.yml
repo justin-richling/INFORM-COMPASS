@@ -5,6 +5,7 @@ on:
     paths:
       - "atm_in_files/**"
       - "scripts/**"
+      - "docs/**"
 
 jobs:
   build:
