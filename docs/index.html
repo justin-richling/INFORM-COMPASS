@@ -6,6 +6,7 @@
 
   <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
@@ -73,7 +74,9 @@
 
   <script>
     // Tooltip definitions
-    const tooltips = {
+    let tooltips = {};
+
+    /*const tooltips = {
     "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
     "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
     "nudge_hwin_lat0": "Specify the horizontal center of the window (lat0) in degrees. [-90., +90.]",
@@ -90,7 +93,48 @@
     "nudge_hwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\n(e.g. to nudge outside a given window)\nTrue/False",
     "nudge_timescale_opt": "Select the timescale for the relaxation:\nWEAK = Constant time scale based on the interval of Target values.\nSTRONG = Variable timescale which gets stronger near each Target time.\n0 = WEAK\n1 = STRONG",
     "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
-    };
+    };*/
+    Promise.all([
+      fetch("run_matrix.json").then(r => r.json()),
+      fetch("tooltips.json").then(r => r.json())
+    ]).then(([data, tooltipData]) => {
+
+      tooltips = tooltipData;
+      function makeTooltip(label, key) {
+        const text = tooltips[key];
+        if (!text) return label;
+
+        const id = "tt-" + Math.random().toString(36).slice(2);
+
+        return `
+          <span class="tooltip-trigger" data-tooltip-id="${id}">
+            ${label}
+          </span>
+          <div id="${id}" class="tooltip-box">
+            ${marked.parse(text)}
+          </div>
+        `;
+      }
+
+
+      const tableBody = document.querySelector("#matrix tbody");
+
+      data.forEach(run => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${run.run_name}</td>
+          <td>${run.nudging}</td>
+          <td>${run.cosp}</td>
+          <td>${Object.keys(run.fincl || {}).join(", ")}</td>
+          <td><pre>${(run.nudged_vars || []).join("\n")}</pre></td>
+          <td><pre>${(run.cosp_vars || []).join("\n")}</pre></td>
+          <td><pre>${(run.other_vars || []).join("\n")}</pre></td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      // DataTables init stays the same
+    });
 
     const countEl = document.getElementById("run-count");
 
@@ -100,11 +144,16 @@
         const tableBody = document.querySelector("#matrix tbody");
 
         // Helper function to wrap variables in tooltips
-        function wrapTooltip(varString) {
+        /*function wrapTooltip(varString) {
           let cleanVar = varString.split("=")[0].trim(); // get variable name
           let tooltipText = tooltips[cleanVar] || "";
           return `<span class="tooltip" data-tooltip="${tooltipText}">${varString}</span>`;
+        }*/
+        function wrapTooltip(varString) {
+          const name = varString.split("=")[0].trim().toLowerCase();
+          return makeTooltip(varString, name);
         }
+
 
         data.forEach(run => {
           const tr = document.createElement("tr");
@@ -121,6 +170,26 @@
 
           tableBody.appendChild(tr);
         });
+
+        document.addEventListener("click", e => {
+        // Close all tooltips
+        document.querySelectorAll(".tooltip-box").forEach(box => {
+          box.style.display = "none";
+        });
+
+        const trigger = e.target.closest(".tooltip-trigger");
+        if (!trigger) return;
+
+        const box = document.getElementById(trigger.dataset.tooltipId);
+        if (!box) return;
+
+        const rect = trigger.getBoundingClientRect();
+        box.style.left = `${rect.left + window.scrollX}px`;
+        box.style.top = `${rect.bottom + window.scrollY + 6}px`;
+        box.style.display = "block";
+
+        e.stopPropagation();
+      });
 
         const dt = $('#matrix').DataTable({
           scrollX: true,

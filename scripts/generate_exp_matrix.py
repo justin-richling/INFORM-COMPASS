@@ -4,6 +4,25 @@ import os, sys
 from parse_namelist import summarize_atm_in
 from pathlib import Path
 
+out = Path("docs/tooltips.json")
+
+try:
+    with open(out, 'r') as file:
+        tooltip_dict = json.load(file)
+    #print("File data =", tooltip_dict)
+    
+except FileNotFoundError:
+    print("Error: The file 'data.json' was not found.")
+    tooltip_dict = {}
+except json.JSONDecodeError:
+    print("Error: Failed to decode JSON from the file.")
+
+#if tooltip_dict != tooltip_dict_new
+#    with out.open("w") as f:
+#        json.dump(tooltip_dict, f, indent=2)#
+#    print(f"Wrote {out}")
+
+
 def push_github():
     print("Pushing run_matrix.json changes to GitHub...")
     #os.system("git config --global user.email 'github-actions[bot]@users.noreply.github.com'")
