@@ -59,6 +59,18 @@ td pre {
   margin-bottom: 10px;
 }
 
+
+#table-container {
+  max-height: 800px;          /* make it taller — adjust as needed */
+  height: 800px;              /* fixed height ensures sticky headers work well */
+  overflow: auto;             /* enables both vertical and horizontal scroll */
+}
+
+#matrix {
+  width: 100%;
+  min-width: 1200px;          /* optional: ensure horizontal scroll if table is wide */
+}
+
 #matrix thead th {
   position: sticky;
   top: 0;              /* stick to the top of the table container */
