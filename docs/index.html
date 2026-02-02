@@ -41,7 +41,6 @@
   <script>
   const countEl = document.getElementById("run-count");
 
-  // Tooltip definitions
   const tooltips = {
     "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
     "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
@@ -61,17 +60,13 @@
     "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
   };
 
-  // Helper to wrap variable in tooltip if it exists
   function wrapTooltip(varString) {
-    const name = varString.split("=")[0].trim();
-    if (tooltips[name]) {
-      return `<span class="tooltip" data-tooltip="${tooltips[name]}">${varString}</span>`;
-    } else {
-      return varString;
-    }
+    const key = varString.split("=")[0].trim();
+    const text = tooltips[key];
+    return text ? `<span class="tooltip" data-tooltip="${text}">${varString}</span>` : varString;
   }
 
-  // Add timestamp to force fresh fetch
+  // Force fresh fetch to avoid caching
   const url = `run_matrix.json?ts=${new Date().getTime()}`;
 
   fetch(url)
@@ -79,11 +74,12 @@
     .then(data => {
       const tableBody = document.querySelector("#matrix tbody");
 
-      // Populate master rows (run names)
+      // Populate table
       data.forEach(run => {
         const tr = document.createElement("tr");
         tr.classList.add("master-row");
         tr.innerHTML = `<td class="run-name">${run.run_name}</td>`;
+        tr._runData = run; // store run object on DOM row
         tableBody.appendChild(tr);
       });
 
@@ -113,26 +109,24 @@
                 <td>${wrapTooltip(run.nudging)}</td>
                 <td>${wrapTooltip(run.cosp)}</td>
                 <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
-                <td><pre>${(run.nudged_vars || []).map(v => wrapTooltip(v)).join("\n")}</pre></td>
-                <td><pre>${(run.cosp_vars || []).map(v => wrapTooltip(v)).join("\n")}</pre></td>
-                <td><pre>${(run.other_vars || []).map(v => wrapTooltip(v)).join("\n")}</pre></td>
+                <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+                <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+                <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
               </tr>
             </tbody>
           </table>
         `;
       }
 
-      // Attach click event to master rows
+      // Click handler using DataTables child row API
       $('#matrix tbody').on('click', 'tr.master-row', function() {
         const row = dt.row(this);
-        const index = row.index(); // get index in data array
-        const run = data[index]; // corresponding run object
 
         if (row.child.isShown()) {
           row.child.hide();
           $(this).removeClass('shown');
         } else {
-          row.child(renderChildRow(run)).show();
+          row.child(renderChildRow(this._runData)).show();
           $(this).addClass('shown');
         }
       });
@@ -141,7 +135,7 @@
       function updateCount() {
         const total = data.length;
         const shown = dt.rows({ search: 'applied' }).nodes().toArray()
-          .filter(row => $(row).hasClass('master-row')).length;
+                      .filter(r => $(r).hasClass('master-row')).length;
         countEl.textContent = `Showing ${shown} of ${total} runs`;
       }
       updateCount();
@@ -152,15 +146,17 @@
       countEl.textContent = "Error loading run data";
     });
 
-  // ----- Last updated -----
+  // Last updated (GMT + Local)
   fetch("run_matrix.json", { method: "HEAD" })
     .then(r => {
-      const lastModified = new Date(r.headers.get("Last-Modified"));
-      const local = lastModified.toLocaleString();
-      const gmt = lastModified.toUTCString();
-      document.getElementById("last-updated").textContent = `${local} (local) / ${gmt} (GMT)`;
+      const gmt = new Date(r.headers.get("Last-Modified"));
+      const local = new Date(r.headers.get("Last-Modified"));
+      const options = {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'};
+      document.getElementById("last-updated").textContent =
+        `GMT: ${gmt.toUTCString()} | Local: ${local.toLocaleString(undefined, options)}`;
     });
 </script>
+
 
 </body>
 </html>
