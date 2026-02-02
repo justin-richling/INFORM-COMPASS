@@ -39,7 +39,9 @@
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <script>
-    // ----- Tooltip definitions -----
+    const countEl = document.getElementById("run-count");
+
+    // Tooltip definitions
     const tooltips = {
       "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
       "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
@@ -59,103 +61,106 @@
       "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
     };
 
-    const countEl = document.getElementById("run-count");
-    const tableBody = document.querySelector("#matrix tbody");
+    // Helper to wrap variable in tooltip if it exists
+    function wrapTooltip(varString) {
+      const name = varString.split("=")[0].trim();
+      if (tooltips[name]) {
+        return `<span class="tooltip" data-tooltip="${tooltips[name]}">${varString}</span>`;
+      } else {
+        return varString;
+      }
+    }
 
-    // Force fresh fetch to avoid caching
+    // Add timestamp to force fresh fetch
     const url = `run_matrix.json?ts=${new Date().getTime()}`;
 
     fetch(url)
       .then(r => r.json())
       .then(data => {
+        const tableBody = document.querySelector("#matrix tbody");
 
-        // Helper function: wrap with tooltip only if exists
-        function wrapTooltip(varString) {
-          const key = varString.split("=")[0].trim();
-          const text = tooltips[key];
-          return text ? `<span class="tooltip" data-tooltip="${text}">${varString}</span>` : varString;
-        }
-
-        // Populate table with master/detail rows
+        // Populate master rows (run names)
         data.forEach(run => {
-          const trMaster = document.createElement("tr");
-          trMaster.classList.add("master-row");
-          trMaster.innerHTML = `<td class="run-name">${run.run_name}</td>`;
-          tableBody.appendChild(trMaster);
-
-          const trDetail = document.createElement("tr");
-          trDetail.classList.add("detail-row");
-          trDetail.style.display = "none"; // hidden initially
-
-          trDetail.innerHTML = `
-            <td>
-              <table class="nested">
-                <thead>
-                  <tr>
-                    <th>Nudging</th>
-                    <th>COSP</th>
-                    <th>FINCL Keys</th>
-                    <th>Nudged Vars</th>
-                    <th>COSP Vars</th>
-                    <th>Other Vars</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>${run.nudging}</td>
-                    <td>${run.cosp}</td>
-                    <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
-                    <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                    <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                    <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                  </tr>
-                </tbody>
-              </table>
-            </td>
-          `;
-          tableBody.appendChild(trDetail);
+          const tr = document.createElement("tr");
+          tr.classList.add("master-row");
+          tr.innerHTML = `<td class="run-name">${run.run_name}</td>`;
+          tableBody.appendChild(tr);
         });
 
-        // ----- Initialize DataTable -----
+        // Initialize DataTable
         const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: 25,
           order: []
         });
 
-        // ----- Delegate click for master rows -----
+        // Function to render child row table
+        function renderChildRow(run) {
+          return `
+            <table class="nested">
+              <thead>
+                <tr>
+                  <th>Nudging</th>
+                  <th>COSP</th>
+                  <th>FINCL Keys</th>
+                  <th>Nudged Vars</th>
+                  <th>COSP Vars</th>
+                  <th>Other Vars</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>${wrapTooltip(run.nudging)}</td>
+                  <td>${wrapTooltip(run.cosp)}</td>
+                  <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
+                  <td><pre>${(run.nudged_vars || []).map(v => wrapTooltip(v)).join("\n")}</pre></td>
+                  <td><pre>${(run.cosp_vars || []).map(v => wrapTooltip(v)).join("\n")}</pre></td>
+                  <td><pre>${(run.other_vars || []).map(v => wrapTooltip(v)).join("\n")}</pre></td>
+                </tr>
+              </tbody>
+            </table>
+          `;
+        }
+
+        // Attach click event to master rows
         $('#matrix tbody').on('click', 'tr.master-row', function() {
-          const detailRow = $(this).next('tr.detail-row');
-          detailRow.toggle();
+          const row = dt.row(this);
+          const index = row.index(); // get index in data array
+          const run = data[index]; // corresponding run object
+
+          if (row.child.isShown()) {
+            row.child.hide();
+            $(this).removeClass('shown');
+          } else {
+            row.child(renderChildRow(run)).show();
+            $(this).addClass('shown');
+          }
         });
 
-        // ----- Update run count -----
+        // Update run count
         function updateCount() {
-          const total = tableBody.querySelectorAll('tr.master-row').length;
-          const shown = dt.rows({ search: 'applied' }).nodes()
-                        .toArray()
-                        .filter(r => r.classList.contains('master-row')).length;
+          const total = data.length;
+          const shown = dt.rows({ search: 'applied' }).nodes().toArray()
+            .filter(row => $(row).hasClass('master-row')).length;
           countEl.textContent = `Showing ${shown} of ${total} runs`;
         }
         updateCount();
         dt.on('search.dt draw.dt', updateCount);
-
       })
       .catch(err => {
         console.error("Failed to load run_matrix.json:", err);
         countEl.textContent = "Error loading run data";
       });
 
-    // ----- Last updated (GMT + Local) -----
+    // ----- Last updated -----
     fetch("run_matrix.json", { method: "HEAD" })
       .then(r => {
-        const gmt = new Date(r.headers.get("Last-Modified"));
-        const local = new Date(r.headers.get("Last-Modified"));
-        const options = {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'};
-        document.getElementById("last-updated").textContent =
-          `GMT: ${gmt.toUTCString()} | Local: ${local.toLocaleString(undefined, options)}`;
+        const lastModified = new Date(r.headers.get("Last-Modified"));
+        const local = lastModified.toLocaleString();
+        const gmt = lastModified.toUTCString();
+        document.getElementById("last-updated").textContent = `${local} (local) / ${gmt} (GMT)`;
       });
+</script>
 
-  </script>
 </body>
 </html>
