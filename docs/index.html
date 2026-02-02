@@ -45,6 +45,26 @@
     .tooltip:hover::after {
       display: block;
     }
+
+    .tooltip-box {
+      position: absolute;
+      display: none;
+      background: #222;
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      max-width: 420px;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      font-size: 0.85em;
+    }
+
+    .tooltip-trigger {
+      cursor: pointer;
+      color: #007bff;
+      text-decoration: underline dotted;
+    }
+
   </style>
 </head>
 <body>
@@ -73,33 +93,17 @@
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <script>
-    // Tooltip definitions
+    const countEl = document.getElementById("run-count");
     let tooltips = {};
 
-    /*const tooltips = {
-    "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
-    "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
-    "nudge_hwin_lat0": "Specify the horizontal center of the window (lat0) in degrees. [-90., +90.]",
-    "nudge_hwin_lon0": "Specify the horizontal center of the window (lon0) in degrees. [0., 360.]",
-    "nudge_hwin_latwidth": "Specify the lat width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
-    "nudge_hwin_lonwidth": "Specify the lon width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
-    "nudge_vwin_hindex": "Vertical window high index",
-    "nudge_vwin_lindex": "Vertical window low index",
-    "nudge_vwin_hdelta": "Vertical window high delta",
-    "nudge_vwin_ldelta": "Vertical window low delta",
-    "nudge_vwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\nTrue/False",
-    "nudge_hwin_latdelta": "Horizontal lat delta",
-    "nudge_hwin_londelta": "Horizontal lon delta",
-    "nudge_hwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\n(e.g. to nudge outside a given window)\nTrue/False",
-    "nudge_timescale_opt": "Select the timescale for the relaxation:\nWEAK = Constant time scale based on the interval of Target values.\nSTRONG = Variable timescale which gets stronger near each Target time.\n0 = WEAK\n1 = STRONG",
-    "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
-    };*/
     Promise.all([
       fetch("run_matrix.json").then(r => r.json()),
       fetch("tooltips.json").then(r => r.json())
     ]).then(([data, tooltipData]) => {
 
       tooltips = tooltipData;
+      const tableBody = document.querySelector("#matrix tbody");
+
       function makeTooltip(label, key) {
         const text = tooltips[key];
         if (!text) return label;
@@ -116,8 +120,10 @@
         `;
       }
 
-
-      const tableBody = document.querySelector("#matrix tbody");
+      function wrapTooltip(varString) {
+        const name = varString.split("=")[0].trim().toLowerCase();
+        return makeTooltip(varString, name);
+      }
 
       data.forEach(run => {
         const tr = document.createElement("tr");
@@ -125,92 +131,53 @@
           <td>${run.run_name}</td>
           <td>${run.nudging}</td>
           <td>${run.cosp}</td>
-          <td>${Object.keys(run.fincl || {}).join(", ")}</td>
-          <td><pre>${(run.nudged_vars || []).join("\n")}</pre></td>
-          <td><pre>${(run.cosp_vars || []).join("\n")}</pre></td>
-          <td><pre>${(run.other_vars || []).join("\n")}</pre></td>
+          <td>${Object.keys(run.fincl || {}).map(wrapTooltip).join(", ")}</td>
+          <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+          <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+          <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
         `;
         tableBody.appendChild(tr);
       });
 
-      // DataTables init stays the same
+      const dt = $('#matrix').DataTable({
+        scrollX: true,
+        pageLength: 25,
+        order: []
+      });
+
+      function updateCount() {
+        const total = dt.rows().count();
+        const shown = dt.rows({ search: 'applied' }).count();
+        countEl.textContent = `Showing ${shown} of ${total} runs`;
+      }
+
+      updateCount();
+      dt.on('search.dt draw.dt', updateCount);
+
+    }).catch(err => {
+      console.error(err);
+      countEl.textContent = "Error loading run data";
     });
 
-    const countEl = document.getElementById("run-count");
+    /* Click-to-open tooltips (global, once) */
+    document.addEventListener("click", e => {
+      document.querySelectorAll(".tooltip-box").forEach(b => b.style.display = "none");
 
-    fetch("run_matrix.json")
-      .then(r => r.json())
-      .then(data => {
-        const tableBody = document.querySelector("#matrix tbody");
+      const trigger = e.target.closest(".tooltip-trigger");
+      if (!trigger) return;
 
-        // Helper function to wrap variables in tooltips
-        /*function wrapTooltip(varString) {
-          let cleanVar = varString.split("=")[0].trim(); // get variable name
-          let tooltipText = tooltips[cleanVar] || "";
-          return `<span class="tooltip" data-tooltip="${tooltipText}">${varString}</span>`;
-        }*/
-        function wrapTooltip(varString) {
-          const name = varString.split("=")[0].trim().toLowerCase();
-          return makeTooltip(varString, name);
-        }
+      const box = document.getElementById(trigger.dataset.tooltipId);
+      if (!box) return;
 
+      const rect = trigger.getBoundingClientRect();
+      box.style.left = `${rect.left + window.scrollX}px`;
+      box.style.top = `${rect.bottom + window.scrollY + 6}px`;
+      box.style.display = "block";
 
-        data.forEach(run => {
-          const tr = document.createElement("tr");
+      e.stopPropagation();
+    });
+    </script>
 
-          tr.innerHTML = `
-            <td>${run.run_name}</td>
-            <td>${run.nudging}</td>
-            <td>${run.cosp}</td>
-            <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
-            <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-            <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-            <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-          `;
-
-          tableBody.appendChild(tr);
-        });
-
-        document.addEventListener("click", e => {
-        // Close all tooltips
-        document.querySelectorAll(".tooltip-box").forEach(box => {
-          box.style.display = "none";
-        });
-
-        const trigger = e.target.closest(".tooltip-trigger");
-        if (!trigger) return;
-
-        const box = document.getElementById(trigger.dataset.tooltipId);
-        if (!box) return;
-
-        const rect = trigger.getBoundingClientRect();
-        box.style.left = `${rect.left + window.scrollX}px`;
-        box.style.top = `${rect.bottom + window.scrollY + 6}px`;
-        box.style.display = "block";
-
-        e.stopPropagation();
-      });
-
-        const dt = $('#matrix').DataTable({
-          scrollX: true,
-          pageLength: 25,
-          order: []
-        });
-
-        function updateCount() {
-          const total = dt.rows().count();
-          const shown = dt.rows({ search: 'applied' }).count();
-          countEl.textContent = `Showing ${shown} of ${total} runs`;
-        }
-
-        updateCount();
-        dt.on('search.dt draw.dt', updateCount);
-      })
-      .catch(err => {
-        console.error("Failed to load run_matrix.json:", err);
-        countEl.textContent = "Error loading run data";
-      });
-  </script>
 
   <p><em>Last updated:</em> <span id="last-updated"></span></p>
   <script>
