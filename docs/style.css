@@ -58,3 +58,10 @@ td pre {
   align-items: center;
   margin-bottom: 10px;
 }
+
+#matrix thead th {
+  position: sticky;
+  top: 0;              /* stick to the top of the table container */
+  background: #f1f1f1; /* background so text is readable */
+  z-index: 10;         /* make sure headers are above table body */
+}
