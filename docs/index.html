@@ -19,13 +19,13 @@
     Showing 0 of 0 runs
   </div>-->
 
-  <!--<p><em>Last updated:</em> <span id="last-updated"></span></p>
+  <!--<p><em>Last updated:</em> <span id="last-updated"></span></p>-->
   <script>
     fetch("run_matrix.json", { method: "HEAD" })
       .then(r => {
         document.getElementById("last-updated").textContent =
           r.headers.get("Last-Modified");
-      });-->
+      });
   </script>
 
   <table id="matrix" class="display">
