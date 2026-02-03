@@ -122,7 +122,6 @@
               <table class="nested">
                 <thead>
                   <tr>
-                    <th>Nudging</th>
                     <th>COSP</th>
                     <th>FINCL Keys</th>
                     <th>Nudged Vars</th>
@@ -132,7 +131,6 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>${run.nudging}</td>
                     <td>${run.cosp}</td>
                     <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
                     <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
