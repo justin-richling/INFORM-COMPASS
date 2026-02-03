@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <base href="./">
   <meta charset="UTF-8">
   <title>CESM Run Matrix</title>
 
@@ -11,12 +10,24 @@
 
   <!-- Optional marked.js for tooltip formatting -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    /* Highlight for search matches */
+    .highlight {
+      background-color: yellow;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
 
   <div id="header-bar">
     <div><h1>INFORM/COMPASS CESM Run Matrix</h1></div>
     <div><em>Last updated:</em> <span id="last-updated"></span></div>
+  </div>
+
+  <div style="margin-bottom:10px;">
+    Search run names: <input type="text" id="search-box" placeholder="Type to highlight">
   </div>
 
   <div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
@@ -61,15 +72,15 @@
 
     const countEl = document.getElementById("run-count");
     const tableBody = document.querySelector("#matrix tbody");
+    const searchBox = document.getElementById("search-box");
 
-    // Force fresh fetch to avoid caching
     const url = `run_matrix.json?ts=${new Date().getTime()}`;
 
     fetch(url)
       .then(r => r.json())
       .then(data => {
 
-        // Helper function: wrap with tooltip only if exists
+        // Helper function: wrap with tooltip if exists
         function wrapTooltip(varString) {
           const key = varString.split("=")[0].trim();
           const text = tooltips[key];
@@ -85,7 +96,7 @@
 
           const trDetail = document.createElement("tr");
           trDetail.classList.add("detail-row");
-          trDetail.style.display = "none";
+          trDetail.style.display = "none"; // hidden initially
 
           trDetail.innerHTML = `
             <td>
@@ -116,38 +127,39 @@
           tableBody.appendChild(trDetail);
         });
 
-        // ----- Initialize DataTable (count only master rows) -----
+        // ----- Initialize DataTable WITHOUT search -----
         const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: 25,
           order: [],
-          // Disable automatic sorting on detail rows
-          rowCallback: function(row, data, displayIndex) {
-            if ($(row).hasClass('detail-row')) {
-              $(row).hide(); 
-            }
-          },
-          drawCallback: function(settings) {
-            $('#matrix tbody tr.detail-row').hide();
-          }
+          searching: false  // disable DataTables filtering
         });
 
         // ----- Delegate click for master rows -----
         $('#matrix tbody').on('click', 'tr.master-row', function() {
-          const detailRow = $(this).next('tr.detail-row');
-          detailRow.toggle();
+          $(this).next('tr.detail-row').toggle();
         });
 
         // ----- Update run count -----
         function updateCount() {
           const total = tableBody.querySelectorAll('tr.master-row').length;
-          const shown = dt.rows({ search: 'applied' }).nodes()
-                        .toArray()
-                        .filter(r => r.classList.contains('master-row')).length;
-          countEl.textContent = `Showing ${shown} of ${total} runs`;
+          countEl.textContent = `Showing ${total} runs`;
         }
         updateCount();
-        dt.on('search.dt draw.dt', updateCount);
+
+        // ----- Custom highlight search -----
+        searchBox.addEventListener('input', () => {
+          const query = searchBox.value.toLowerCase();
+          tableBody.querySelectorAll('tr.master-row').forEach(tr => {
+            const td = tr.querySelector('td.run-name');
+            const text = td.textContent.toLowerCase();
+            if(query && text.includes(query)) {
+              td.classList.add('highlight');
+            } else {
+              td.classList.remove('highlight');
+            }
+          });
+        });
 
       })
       .catch(err => {
