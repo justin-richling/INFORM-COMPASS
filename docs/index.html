@@ -127,13 +127,23 @@
           tableBody.appendChild(trDetail);
         });
 
+        const totalRows = tableBody.querySelectorAll('tr.master-row').length;
+
+        const dt = $('#matrix').DataTable({
+          scrollX: true,
+          pageLength: totalRows < 25 ? totalRows : 25,
+          order: [],
+          searching: false
+        });
+
+        /*
         // ----- Initialize DataTable WITHOUT search -----
         const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: 25,
           order: [],
           searching: false  // disable DataTables filtering
-        });
+        });*/
 
         // ----- Delegate click for master rows -----
         $('#matrix tbody').on('click', 'tr.master-row', function() {
