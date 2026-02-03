@@ -1,144 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Run Index</title>
+<meta charset="UTF-8">
+<title>Run Table</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
 
-    /* Search bar */
-    #searchBox {
-      width: 300px;
-      padding: 8px;
-      margin-bottom: 15px;
-      font-size: 14px;
-    }
+/* ---- Search ---- */
+#searchBox {
+    padding: 6px 10px;
+    width: 300px;
+    margin-bottom: 12px;
+}
 
-    /* Table styling */
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      table-layout: fixed; /* IMPORTANT for alignment */
-    }
+/* ---- Table ---- */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+}
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px 10px;
-      text-align: left;
-      vertical-align: middle;
-      word-wrap: break-word;
-    }
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+    word-wrap: break-word;
+}
 
-    th {
-      background-color: #f2f2f2;
-      font-weight: bold;
-    }
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
 
-    tr:nth-child(even) {
-      background-color: #fafafa;
-    }
+/* Highlight matches */
+.highlight {
+    background-color: yellow;
+    color: black;
+}
 
-    /* Pagination */
-    #pagination {
-      margin-top: 15px;
-      text-align: center;
-    }
+/* ---- Pagination ---- */
+#pagination {
+    margin-top: 12px;
+    text-align: center;
+}
 
-    #pagination button {
-      margin: 0 4px;
-      padding: 5px 10px;
-      cursor: pointer;
-    }
+.page-btn {
+    margin: 0 4px;
+    padding: 4px 8px;
+    border: 1px solid #999;
+    cursor: pointer;
+    background-color: #f8f8f8;
+}
 
-    #pagination button.active {
-      font-weight: bold;
-      background-color: #ddd;
-    }
-  </style>
+.page-btn.active {
+    background-color: #ddd;
+    font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Model Runs</h2>
+<h2>Runs</h2>
 
 <input
-  type="text"
-  id="searchBox"
-  placeholder="Search by run name..."
+    type="text"
+    id="searchBox"
+    placeholder="Search run name..."
 >
 
 <table id="runTable">
-  <thead>
-    <tr>
-      <th style="width: 30%;">Run Name</th>
-      <th style="width: 20%;">Model</th>
-      <th style="width: 20%;">Resolution</th>
-      <th style="width: 30%;">Notes</th>
-    </tr>
-  </thead>
-  <tbody id="tableBody">
-    <!-- Example rows (replace or generate as needed) -->
-    <tr><td>run_A_001</td><td>CESM</td><td>1deg</td><td>Control</td></tr>
-    <tr><td>run_A_002</td><td>CESM</td><td>1deg</td><td>Perturbed</td></tr>
-    <tr><td>run_B_test</td><td>CAM</td><td>0.25deg</td><td>High-res</td></tr>
-    <!-- add as many rows as you want -->
-  </tbody>
+    <thead>
+        <tr>
+            <th style="width: 25%;">Run Name</th>
+            <th style="width: 25%;">Model</th>
+            <th style="width: 25%;">Resolution</th>
+            <th style="width: 25%;">Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Example rows — replace with yours -->
+        <tr><td>run_A_v1</td><td>CESM</td><td>1deg</td><td>baseline</td></tr>
+        <tr><td>run_A_v2</td><td>CESM</td><td>1deg</td><td>tuned</td></tr>
+        <tr><td>run_B_test</td><td>CAM</td><td>0.25deg</td><td>experiment</td></tr>
+        <tr><td>long_run_name_example_01</td><td>CESM</td><td>2deg</td><td>spinup</td></tr>
+        <tr><td>nudged_case_2019</td><td>CAM</td><td>1deg</td><td>nudging</td></tr>
+        <tr><td>nudged_case_2020</td><td>CAM</td><td>1deg</td><td>nudging</td></tr>
+        <tr><td>nudged_case_2021</td><td>CAM</td><td>1deg</td><td>nudging</td></tr>
+        <tr><td>nudged_case_2022</td><td>CAM</td><td>1deg</td><td>nudging</td></tr>
+        <tr><td>nudged_case_2023</td><td>CAM</td><td>1deg</td><td>nudging</td></tr>
+        <tr><td>nudged_case_2024</td><td>CAM</td><td>1deg</td><td>nudging</td></tr>
+        <tr><td>test_run_X</td><td>CESM</td><td>0.5deg</td><td>test</td></tr>
+        <tr><td>test_run_Y</td><td>CESM</td><td>0.5deg</td><td>test</td></tr>
+        <tr><td>test_run_Z</td><td>CESM</td><td>0.5deg</td><td>test</td></tr>
+        <tr><td>final_prod</td><td>CESM</td><td>1deg</td><td>production</td></tr>
+        <tr><td>extra_case_01</td><td>CAM</td><td>2deg</td><td>extra</td></tr>
+        <tr><td>extra_case_02</td><td>CAM</td><td>2deg</td><td>extra</td></tr>
+    </tbody>
 </table>
 
 <div id="pagination"></div>
 
 <script>
-  const rowsPerPage = 13;
-  let currentPage = 1;
+const rowsPerPage = 13;
+let currentPage = 1;
 
-  const searchBox = document.getElementById("searchBox");
-  const tableBody = document.getElementById("tableBody");
-  const pagination = document.getElementById("pagination");
+const table = document.getElementById("runTable");
+const tbody = table.querySelector("tbody");
+const rows = Array.from(tbody.querySelectorAll("tr"));
+const pagination = document.getElementById("pagination");
+const searchBox = document.getElementById("searchBox");
 
-  function getFilteredRows() {
-    const filter = searchBox.value.toLowerCase();
-    return Array.from(tableBody.querySelectorAll("tr")).filter(row =>
-      row.textContent.toLowerCase().includes(filter)
-    );
-  }
-
-  function renderTable() {
-    const rows = getFilteredRows();
+/* ---------- Pagination ---------- */
+function renderTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
     rows.forEach((row, index) => {
-      row.style.display = (index >= start && index < end) ? "" : "none";
+        row.style.display = (index >= start && index < end) ? "" : "none";
     });
+}
 
-    renderPagination(rows.length);
-  }
-
-  function renderPagination(totalRows) {
+function renderPagination() {
     pagination.innerHTML = "";
-    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const pageCount = Math.ceil(rows.length / rowsPerPage);
 
-    for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement("button");
-      btn.textContent = i;
-      btn.className = (i === currentPage) ? "active" : "";
-      btn.onclick = () => {
-        currentPage = i;
-        renderTable();
-      };
-      pagination.appendChild(btn);
+    for (let i = 1; i <= pageCount; i++) {
+        const btn = document.createElement("span");
+        btn.textContent = i;
+        btn.className = "page-btn" + (i === currentPage ? " active" : "");
+        btn.onclick = () => {
+            currentPage = i;
+            renderTable();
+            renderPagination();
+        };
+        pagination.appendChild(btn);
     }
-  }
+}
 
-  searchBox.addEventListener("input", () => {
-    currentPage = 1;
-    renderTable();
-  });
+/* ---------- Search Highlight Only ---------- */
+function clearHighlights() {
+    rows.forEach(row => {
+        row.querySelectorAll("td").forEach(cell => {
+            cell.innerHTML = cell.textContent;
+        });
+    });
+}
 
-  renderTable();
+searchBox.addEventListener("input", () => {
+    const query = searchBox.value.toLowerCase();
+    clearHighlights();
+
+    if (!query) return;
+
+    rows.forEach(row => {
+        row.querySelectorAll("td").forEach(cell => {
+            const text = cell.textContent;
+            const idx = text.toLowerCase().indexOf(query);
+            if (idx !== -1) {
+                cell.innerHTML =
+                    text.substring(0, idx) +
+                    `<span class="highlight">` +
+                    text.substring(idx, idx + query.length) +
+                    `</span>` +
+                    text.substring(idx + query.length);
+            }
+        });
+    });
+});
+
+/* Init */
+renderTable();
+renderPagination();
 </script>
 
 </body>
