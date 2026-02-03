@@ -1,218 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <base href="./">
   <meta charset="UTF-8">
-  <title>CESM Run Matrix</title>
-
-  <link rel="stylesheet" href="style.css">
+  <title>Run Index</title>
 
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    /* Search bar */
+    #searchBox {
+      width: 300px;
+      padding: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    /* Table styling */
     table {
-      width: 100%;
       border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed; /* IMPORTANT for alignment */
     }
 
     th, td {
-      padding: 8px;
-      vertical-align: top;
-    }
-
-    tr.master-row {
-      cursor: pointer;
-      font-weight: bold;
-      background: #fff;
-    }
-
-    tr.master-row:hover {
-      background: #f0f0f0;
-    }
-
-    tr.detail-row {
-      display: none;
-    }
-
-    tr.detail-row td {
-      background: #fafafa;
-    }
-
-    table.nested {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    table.nested th {
+      border: 1px solid #ccc;
+      padding: 8px 10px;
       text-align: left;
+      vertical-align: middle;
+      word-wrap: break-word;
+    }
+
+    th {
+      background-color: #f2f2f2;
       font-weight: bold;
     }
 
-    .tooltip {
-      color: #1a73e8;
-      cursor: help;
-      position: relative;
+    tr:nth-child(even) {
+      background-color: #fafafa;
     }
 
-    .tooltip:hover::after {
-      content: attr(data-tooltip);
-      white-space: pre-wrap;
-      position: absolute;
-      left: 0;
-      top: 1.5em;
-      background: #333;
-      color: #fff;
-      padding: 6px;
-      font-size: 12px;
-      z-index: 10;
-      max-width: 400px;
-    }
-
-    .highlight {
-      background: yellow;
-    }
-
+    /* Pagination */
     #pagination {
-      margin-top: 10px;
+      margin-top: 15px;
+      text-align: center;
     }
 
     #pagination button {
-      margin: 0 2px;
+      margin: 0 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    #pagination button.active {
+      font-weight: bold;
+      background-color: #ddd;
     }
   </style>
 </head>
 <body>
 
-<div id="header-bar">
-  <div><h1>INFORM/COMPASS CESM Run Matrix</h1></div>
-  <div><em>Last updated:</em> <span id="last-updated"></span></div>
-</div>
+<h2>Model Runs</h2>
 
-<div style="margin: 10px 0;">
-  <label>
-    Search run name:
-    <input type="text" id="search-input" placeholder="Type to highlight…">
-  </label>
-</div>
+<input
+  type="text"
+  id="searchBox"
+  placeholder="Search by run name..."
+>
 
-<div id="run-count"></div>
-
-<table id="matrix">
+<table id="runTable">
   <thead>
     <tr>
-      <th>Run Name</th>
+      <th style="width: 30%;">Run Name</th>
+      <th style="width: 20%;">Model</th>
+      <th style="width: 20%;">Resolution</th>
+      <th style="width: 30%;">Notes</th>
     </tr>
   </thead>
-  <tbody></tbody>
+  <tbody id="tableBody">
+    <!-- Example rows (replace or generate as needed) -->
+    <tr><td>run_A_001</td><td>CESM</td><td>1deg</td><td>Control</td></tr>
+    <tr><td>run_A_002</td><td>CESM</td><td>1deg</td><td>Perturbed</td></tr>
+    <tr><td>run_B_test</td><td>CAM</td><td>0.25deg</td><td>High-res</td></tr>
+    <!-- add as many rows as you want -->
+  </tbody>
 </table>
 
 <div id="pagination"></div>
 
 <script>
-const tooltips = {
-  "nudge_uprof": "Selectively apply nudging to U",
-  "nudge_ucoef": "Nudging strength [0,1]",
-  "nudge_force_opt": "Target forcing option"
-};
+  const rowsPerPage = 13;
+  let currentPage = 1;
 
-const rowsPerPage = 13;
-let currentPage = 1;
-let runs = [];
+  const searchBox = document.getElementById("searchBox");
+  const tableBody = document.getElementById("tableBody");
+  const pagination = document.getElementById("pagination");
 
-function wrapTooltip(text) {
-  const key = text.split("=")[0].trim();
-  return tooltips[key]
-    ? `<span class="tooltip" data-tooltip="${tooltips[key]}">${text}</span>`
-    : text;
-}
-
-function renderTable() {
-  const tbody = document.querySelector("#matrix tbody");
-  tbody.innerHTML = "";
-
-  const start = (currentPage - 1) * rowsPerPage;
-  const end = start + rowsPerPage;
-  const pageRuns = runs.slice(start, end);
-
-  pageRuns.forEach(run => {
-    const master = document.createElement("tr");
-    master.className = "master-row";
-    master.innerHTML = `<td class="run-name">${run.run_name}</td>`;
-    tbody.appendChild(master);
-
-    const detail = document.createElement("tr");
-    detail.className = "detail-row";
-    detail.innerHTML = `
-      <td>
-        <table class="nested">
-          <tr>
-            <th>Nudging</th>
-            <th>COSP</th>
-            <th>FINCL</th>
-            <th>Nudged Vars</th>
-            <th>COSP Vars</th>
-            <th>Other Vars</th>
-          </tr>
-          <tr>
-            <td>${run.nudging}</td>
-            <td>${run.cosp}</td>
-            <td>${Object.keys(run.fincl || {}).join(", ")}</td>
-            <td><pre>${(run.nudged_vars||[]).map(wrapTooltip).join("\n")}</pre></td>
-            <td><pre>${(run.cosp_vars||[]).map(wrapTooltip).join("\n")}</pre></td>
-            <td><pre>${(run.other_vars||[]).map(wrapTooltip).join("\n")}</pre></td>
-          </tr>
-        </table>
-      </td>
-    `;
-    tbody.appendChild(detail);
-
-    master.addEventListener("click", () => {
-      detail.style.display =
-        detail.style.display === "table-row" ? "none" : "table-row";
-    });
-  });
-
-  document.getElementById("run-count").textContent =
-    `Showing ${pageRuns.length} of ${runs.length} runs`;
-}
-
-function renderPagination() {
-  const pages = Math.ceil(runs.length / rowsPerPage);
-  const div = document.getElementById("pagination");
-  div.innerHTML = "";
-
-  for (let i = 1; i <= pages; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.onclick = () => {
-      currentPage = i;
-      renderTable();
-      renderPagination();
-    };
-    if (i === currentPage) btn.disabled = true;
-    div.appendChild(btn);
+  function getFilteredRows() {
+    const filter = searchBox.value.toLowerCase();
+    return Array.from(tableBody.querySelectorAll("tr")).filter(row =>
+      row.textContent.toLowerCase().includes(filter)
+    );
   }
-}
 
-document.getElementById("search-input").addEventListener("input", e => {
-  const q = e.target.value.toLowerCase();
-  document.querySelectorAll(".run-name").forEach(td => {
-    td.classList.toggle("highlight", q && td.textContent.toLowerCase().includes(q));
-  });
-});
+  function renderTable() {
+    const rows = getFilteredRows();
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
 
-fetch(`run_matrix.json?ts=${Date.now()}`)
-  .then(r => r.json())
-  .then(data => {
-    runs = data;
+    rows.forEach((row, index) => {
+      row.style.display = (index >= start && index < end) ? "" : "none";
+    });
+
+    renderPagination(rows.length);
+  }
+
+  function renderPagination(totalRows) {
+    pagination.innerHTML = "";
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i;
+      btn.className = (i === currentPage) ? "active" : "";
+      btn.onclick = () => {
+        currentPage = i;
+        renderTable();
+      };
+      pagination.appendChild(btn);
+    }
+  }
+
+  searchBox.addEventListener("input", () => {
+    currentPage = 1;
     renderTable();
-    renderPagination();
   });
 
-fetch("run_matrix.json", { method: "HEAD" })
-  .then(r => {
-    const d = new Date(r.headers.get("Last-Modified"));
-    document.getElementById("last-updated").textContent =
-      `${d.toUTCString()} | Local: ${d.toLocaleString()}`;
-  });
+  renderTable();
 </script>
 
 </body>
