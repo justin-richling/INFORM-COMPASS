@@ -121,7 +121,10 @@
         const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: totalRows < 25 ? totalRows : 25,
-          order: []
+          order: [],
+          //paging: false,
+          searching: false,
+          info: false
         });
 
         // ----- Delegate click for master rows -----
