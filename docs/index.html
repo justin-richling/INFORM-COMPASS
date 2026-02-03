@@ -1,206 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <base href="./">
   <meta charset="UTF-8">
   <title>CESM Run Matrix</title>
 
-  <!-- DataTables CSS -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="style.css">
 
-  <!-- Optional marked.js for tooltip formatting -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
   <style>
-    /* Highlighted search */
     .highlight {
       background-color: yellow;
     }
 
-    /* Tooltip color only if text exists */
-    .tooltip {
-      color: blue;
-      font-weight: bold;
-      cursor: help;
+    .pagination {
+      margin-top: 10px;
     }
 
-    /* Keep nested table aligned */
-    .nested {
-      border-collapse: collapse;
-      width: 100%;
+    .pagination button {
+      margin-right: 5px;
     }
-    .nested th, .nested td {
-      border: 1px solid #ddd;
-      padding: 4px 6px;
-      font-size: 0.9em;
+
+    tr.detail-row {
+      display: none;
+    }
+
+    tr.master-row {
+      cursor: pointer;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <div id="header-bar">
-    <div><h1>INFORM/COMPASS CESM Run Matrix</h1></div>
-    <div><em>Last updated:</em> <span id="last-updated"></span></div>
-  </div>
+<div id="header-bar">
+  <h1>INFORM/COMPASS CESM Run Matrix</h1>
+  <div><em>Last updated:</em> <span id="last-updated"></span></div>
+</div>
 
-  <div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
-    Showing 0 of 0 runs
-  </div>
+<div style="margin-bottom:10px;">
+  <input
+    type="text"
+    id="search-box"
+    placeholder="Search run names (highlight only)"
+    style="width:300px;"
+  >
+</div>
 
-  <!-- Search input -->
-  <div style="margin-bottom:10px;">
-    <label for="search-input"><strong>Search Run Names:</strong> </label>
-    <input type="text" id="search-input" placeholder="Type to highlight runs">
-  </div>
+<div id="run-count" style="margin-bottom:10px; font-weight:bold;"></div>
 
-  <div id="table-container">
-    <table id="matrix" class="display">
-      <thead>
-        <tr>
-          <th>Run Name</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<table id="matrix" border="1" cellspacing="0" cellpadding="6" width="100%">
+  <thead>
+    <tr>
+      <th>Run Name</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-  <!-- jQuery and DataTables JS -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<div class="pagination">
+  <button id="prev-page">Prev</button>
+  <button id="next-page">Next</button>
+</div>
 
-  <script>
-    // ----- Tooltip definitions -----
-    const tooltips = {
-      "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
-      "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
-      "nudge_hwin_lat0": "Specify the horizontal center of the window (lat0) in degrees. [-90., +90.]",
-      "nudge_hwin_lon0": "Specify the horizontal center of the window (lon0) in degrees. [0., 360.]",
-      "nudge_hwin_latwidth": "Specify the lat width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
-      "nudge_hwin_lonwidth": "Specify the lon width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
-      "nudge_vwin_hindex": "Vertical window high index",
-      "nudge_vwin_lindex": "Vertical window low index",
-      "nudge_vwin_hdelta": "Vertical window high delta",
-      "nudge_vwin_ldelta": "Vertical window low delta",
-      "nudge_vwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\nTrue/False",
-      "nudge_hwin_latdelta": "Horizontal lat delta",
-      "nudge_hwin_londelta": "Horizontal lon delta",
-      "nudge_hwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\n(e.g. to nudge outside a given window)\nTrue/False",
-      "nudge_timescale_opt": "Select the timescale for the relaxation:\nWEAK = Constant time scale based on the interval of Target values.\nSTRONG = Variable timescale which gets stronger near each Target time.\n0 = WEAK\n1 = STRONG",
-      "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
-    };
+<script>
+const ROWS_PER_PAGE = 13;
+let currentPage = 1;
+let masterRows = [];
 
-    const countEl = document.getElementById("run-count");
-    const tableBody = document.querySelector("#matrix tbody");
+const tableBody = document.querySelector("#matrix tbody");
+const countEl = document.getElementById("run-count");
 
-    // ----- Fetch run data -----
-    const url = `run_matrix.json?ts=${new Date().getTime()}`;
-    fetch(url)
-      .then(r => r.json())
-      .then(data => {
+// ---------------- Tooltips ----------------
+const tooltips = {
+  "nudge_uprof": "Selectively apply nudging to U",
+  "nudge_ucoef": "Nudging strength for U"
+};
 
-        // Helper to wrap text with tooltip only if defined
-        function wrapTooltip(varString) {
-          const key = varString.split("=")[0].trim();
-          const text = tooltips[key];
-          return text ? `<span class="tooltip" data-tooltip="${text}">${varString}</span>` : varString;
-        }
+// ---------------- Helpers ----------------
+function wrapTooltip(text) {
+  const key = text.split("=")[0].trim();
+  return tooltips[key]
+    ? `<span class="tooltip" title="${tooltips[key]}">${text}</span>`
+    : text;
+}
 
-        // Build table with master/detail rows
-        data.forEach(run => {
-          const trMaster = document.createElement("tr");
-          trMaster.classList.add("master-row");
-          trMaster.innerHTML = `<td class="run-name">${run.run_name}</td>`;
-          tableBody.appendChild(trMaster);
+function renderPage() {
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
+  const end = start + ROWS_PER_PAGE;
 
-          const trDetail = document.createElement("tr");
-          trDetail.classList.add("detail-row");
-          trDetail.style.display = "none"; // initially hidden
+  masterRows.forEach((row, idx) => {
+    const show = idx >= start && idx < end;
+    row.master.style.display = show ? "" : "none";
+    row.detail.style.display = "none";
+  });
 
-          trDetail.innerHTML = `
-            <td>
-              <table class="nested">
-                <thead>
-                  <tr>
-                    <th>COSP</th>
-                    <th>FINCL Keys</th>
-                    <th>Nudged Vars</th>
-                    <th>COSP Vars</th>
-                    <th>Other Vars</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>${run.cosp}</td>
-                    <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
-                    <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                    <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                    <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                  </tr>
-                </tbody>
-              </table>
-            </td>
-          `;
-          tableBody.appendChild(trDetail);
-        });
+  const total = masterRows.length;
+  const shownStart = Math.min(start + 1, total);
+  const shownEnd = Math.min(end, total);
 
-        // ----- Initialize DataTable -----
-        const dt = $('#matrix').DataTable({
-          scrollX: true,
-          pageLength: 25,
-          order: [],
-          searching: false,
-          info: false,         // disable "Showing X to Y" at bottom,
-          lengthChange: false, // <-- remove the "Show X entries" dropdown
-        });
+  countEl.textContent = `Showing ${shownStart}–${shownEnd} of ${total} runs`;
+}
 
-        // ----- Master row click toggle -----
-        $('#matrix tbody').on('click', 'tr.master-row', function() {
-          const detailRow = $(this).next('tr.detail-row');
-          detailRow.toggle();
-        });
+// ---------------- Fetch Data ----------------
+fetch(`run_matrix.json?ts=${Date.now()}`)
+  .then(r => r.json())
+  .then(data => {
 
-        // ----- Update run count -----
-        function updateCount() {
-          const total = tableBody.querySelectorAll('tr.master-row').length;
-          const shown = dt.rows().nodes()
-                        .toArray()
-                        .filter(r => r.classList.contains('master-row')).length;
-          //countEl.textContent = `Showing ${shown} of ${total} runs`;
-          countEl.textContent = `Showing ${total} of ${shown} runs`;
-        }
-        updateCount();
-        dt.on('draw.dt', updateCount);
+    data.forEach(run => {
+      const master = document.createElement("tr");
+      master.className = "master-row";
+      master.innerHTML = `<td>${run.run_name}</td>`;
 
-        // ----- Search highlighting (without hiding rows) -----
-        const searchInput = document.getElementById("search-input");
-        searchInput.addEventListener("input", () => {
-          const query = searchInput.value.toLowerCase();
-          document.querySelectorAll("#matrix tbody tr.master-row td").forEach(td => {
-            if (td.textContent.toLowerCase().includes(query) && query !== "") {
-              td.classList.add("highlight");
-            } else {
-              td.classList.remove("highlight");
-            }
-          });
-        });
+      const detail = document.createElement("tr");
+      detail.className = "detail-row";
+      detail.innerHTML = `
+        <td>
+          <strong>Nudging:</strong> ${run.nudging}<br>
+          <strong>COSP:</strong> ${run.cosp}<br><br>
+          <strong>FINCL:</strong><br>
+          ${Object.keys(run.fincl || {}).map(wrapTooltip).join(", ")}<br><br>
+          <strong>Nudged Vars:</strong><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre>
+          <strong>COSP Vars:</strong><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre>
+          <strong>Other Vars:</strong><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre>
+        </td>
+      `;
 
-      })
-      .catch(err => {
-        console.error("Failed to load run_matrix.json:", err);
-        countEl.textContent = "Error loading run data";
+      master.addEventListener("click", () => {
+        detail.style.display = detail.style.display === "none" ? "" : "none";
       });
 
-    // ----- Last updated (GMT + Local) -----
-    fetch("run_matrix.json", { method: "HEAD" })
-      .then(r => {
-        const gmt = new Date(r.headers.get("Last-Modified"));
-        const local = new Date(r.headers.get("Last-Modified"));
-        const options = {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'};
-        document.getElementById("last-updated").textContent =
-          `GMT: ${gmt.toUTCString()} | Local: ${local.toLocaleString(undefined, options)}`;
-      });
+      tableBody.appendChild(master);
+      tableBody.appendChild(detail);
 
-  </script>
+      masterRows.push({ master, detail });
+    });
+
+    renderPage();
+  });
+
+// ---------------- Pagination ----------------
+document.getElementById("prev-page").onclick = () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
+};
+
+document.getElementById("next-page").onclick = () => {
+  const maxPage = Math.ceil(masterRows.length / ROWS_PER_PAGE);
+  if (currentPage < maxPage) {
+    currentPage++;
+    renderPage();
+  }
+};
+
+// ---------------- Search (HIGHLIGHT ONLY) ----------------
+document.getElementById("search-box").addEventListener("input", e => {
+  const q = e.target.value.toLowerCase();
+
+  masterRows.forEach(({ master }) => {
+    const td = master.querySelector("td");
+    td.classList.remove("highlight");
+
+    if (q && td.textContent.toLowerCase().includes(q)) {
+      td.classList.add("highlight");
+    }
+  });
+});
+
+// ---------------- Last Updated ----------------
+fetch("run_matrix.json", { method: "HEAD" })
+  .then(r => {
+    const d = new Date(r.headers.get("Last-Modified"));
+    document.getElementById("last-updated").textContent =
+      `GMT: ${d.toUTCString()} | Local: ${d.toLocaleString()}`;
+  });
+</script>
+
 </body>
 </html>
