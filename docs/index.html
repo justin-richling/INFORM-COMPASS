@@ -167,7 +167,7 @@
                         .toArray()
                         .filter(r => r.classList.contains('master-row')).length;
           //countEl.textContent = `Showing ${shown} of ${total} runs`;
-          countEl.textContent = `Showing ${shown} of ${total} runs`;
+          countEl.textContent = `Showing ${total} of ${shown} runs`;
         }
         updateCount();
         dt.on('draw.dt', updateCount);
