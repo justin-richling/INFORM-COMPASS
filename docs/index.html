@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <title>CESM Run Matrix</title>
 
-  <!-- DataTables CSS -->
+  <!-- CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="style.css">
 
@@ -17,6 +17,11 @@
   <div id="header-bar">
     <div><h1>INFORM/COMPASS CESM Run Matrix</h1></div>
     <div><em>Last updated:</em> <span id="last-updated"></span></div>
+  </div>
+
+  <div style="margin:10px 0;">
+    <label for="run-search">Search Runs: </label>
+    <input type="text" id="run-search" placeholder="Enter run name...">
   </div>
 
   <div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
@@ -34,130 +39,135 @@
     </table>
   </div>
 
-  <!-- jQuery and DataTables JS -->
+  <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <script>
-  const tooltips = {
-    "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
-    "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
-    "nudge_hwin_lat0": "Specify the horizontal center of the window (lat0) in degrees. [-90., +90.]",
-    "nudge_hwin_lon0": "Specify the horizontal center of the window (lon0) in degrees. [0., 360.]",
-    "nudge_hwin_latwidth": "Specify the lat width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
-    "nudge_hwin_lonwidth": "Specify the lon width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
-    "nudge_vwin_hindex": "Vertical window high index",
-    "nudge_vwin_lindex": "Vertical window low index",
-    "nudge_vwin_hdelta": "Vertical window high delta",
-    "nudge_vwin_ldelta": "Vertical window low delta",
-    "nudge_vwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\nTrue/False",
-    "nudge_hwin_latdelta": "Horizontal lat delta",
-    "nudge_hwin_londelta": "Horizontal lon delta",
-    "nudge_hwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\n(e.g. to nudge outside a given window)\nTrue/False",
-    "nudge_timescale_opt": "Select the timescale for the relaxation:\nWEAK = Constant time scale based on the interval of Target values.\nSTRONG = Variable timescale which gets stronger near each Target time.\n0 = WEAK\n1 = STRONG",
-    "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
-  };
+    // ----- Tooltip definitions -----
+    const tooltips = {
+      "nudge_uprof": "Selectively apply nudging to U:\nOFF = Switch off nudging\nON = Apply nudging everywhere\nWINDOW = Apply window function to nudging tendencies.\n0 = OFF\n1 = ON\n2 = WINDOW",
+      "nudge_ucoef": "Selectively adjust the nudging strength applied to U. (normalized) [0.,1.]",
+      "nudge_hwin_lat0": "Specify the horizontal center of the window (lat0) in degrees. [-90., +90.]",
+      "nudge_hwin_lon0": "Specify the horizontal center of the window (lon0) in degrees. [0., 360.]",
+      "nudge_hwin_latwidth": "Specify the lat width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
+      "nudge_hwin_lonwidth": "Specify the lon width of the horizontal window in degrees.\nSetting a width to a large value (e.g. 999.) renders the window constant in that direction.\n>0",
+      "nudge_vwin_hindex": "Vertical window high index",
+      "nudge_vwin_lindex": "Vertical window low index",
+      "nudge_vwin_hdelta": "Vertical window high delta",
+      "nudge_vwin_ldelta": "Vertical window low delta",
+      "nudge_vwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\nTrue/False",
+      "nudge_hwin_latdelta": "Horizontal lat delta",
+      "nudge_hwin_londelta": "Horizontal lon delta",
+      "nudge_hwin_invert": "A logical flag used to invert the horizontal window function to get its complement.\n(e.g. to nudge outside a given window)\nTrue/False",
+      "nudge_timescale_opt": "Select the timescale for the relaxation:\nWEAK = Constant time scale based on the interval of Target values.\nSTRONG = Variable timescale which gets stronger near each Target time.\n0 = WEAK\n1 = STRONG",
+      "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
+    };
 
-  const countEl = document.getElementById("run-count");
-  const tableBody = document.querySelector("#matrix tbody");
+    const countEl = document.getElementById("run-count");
+    const tableBody = document.querySelector("#matrix tbody");
+    const searchInput = document.getElementById("run-search");
 
-  const url = `run_matrix.json?ts=${new Date().getTime()}`;
+    // Force fresh fetch to avoid caching
+    const url = `run_matrix.json?ts=${new Date().getTime()}`;
 
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
 
-      // Helper function: wrap with tooltip only if exists
-      function wrapTooltip(varString) {
-        const key = varString.split("=")[0].trim();
-        const text = tooltips[key];
-        return text ? `<span class="tooltip" data-tooltip="${text}">${varString}</span>` : varString;
-      }
-
-      // Populate table with master/detail rows
-      data.forEach(run => {
-        const trMaster = document.createElement("tr");
-        trMaster.classList.add("master-row");
-        trMaster.innerHTML = `<td class="run-name">${run.run_name}</td>`;
-        tableBody.appendChild(trMaster);
-
-        const trDetail = document.createElement("tr");
-        trDetail.classList.add("detail-row");
-        trDetail.style.display = "none";
-
-        trDetail.innerHTML = `
-          <td>
-            <table class="nested">
-              <thead>
-                <tr>
-                  <th>Nudging</th>
-                  <th>COSP</th>
-                  <th>FINCL Keys</th>
-                  <th>Nudged Vars</th>
-                  <th>COSP Vars</th>
-                  <th>Other Vars</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>${run.nudging}</td>
-                  <td>${run.cosp}</td>
-                  <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
-                  <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                  <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                  <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
-                </tr>
-              </tbody>
-            </table>
-          </td>
-        `;
-        tableBody.appendChild(trDetail);
-      });
-
-      // ----- Initialize DataTable -----
-      const dt = $('#matrix').DataTable({
-        scrollX: true,
-        pageLength: 25,
-        order: [],
-        rowCallback: function(row, data, index) {
-          // Reattach click handler for master rows every redraw (fixes search/pagination)
-          const $row = $(row);
-          if ($row.hasClass('master-row')) {
-            $row.off('click').on('click', function() {
-              const detailRow = $row.next('tr.detail-row');
-              detailRow.toggle();
-            });
-          }
+        // Helper: wrap variable in tooltip if exists
+        function wrapTooltip(varString) {
+          const key = varString.split("=")[0].trim();
+          const text = tooltips[key];
+          return text ? `<span class="tooltip" data-tooltip="${text}">${varString}</span>` : varString;
         }
+
+        // Populate table
+        data.forEach(run => {
+          const trMaster = document.createElement("tr");
+          trMaster.classList.add("master-row");
+          trMaster.dataset.runName = run.run_name.toLowerCase();
+          trMaster.innerHTML = `<td class="run-name">${run.run_name}</td>`;
+          tableBody.appendChild(trMaster);
+
+          const trDetail = document.createElement("tr");
+          trDetail.classList.add("detail-row");
+          trDetail.style.display = "none";
+
+          trDetail.innerHTML = `
+            <td>
+              <table class="nested">
+                <thead>
+                  <tr>
+                    <th>Nudging</th>
+                    <th>COSP</th>
+                    <th>FINCL Keys</th>
+                    <th>Nudged Vars</th>
+                    <th>COSP Vars</th>
+                    <th>Other Vars</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>${run.nudging}</td>
+                    <td>${run.cosp}</td>
+                    <td>${Object.keys(run.fincl || {}).map(k => wrapTooltip(k)).join(", ")}</td>
+                    <td><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+                    <td><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+                    <td><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre></td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          `;
+          tableBody.appendChild(trDetail);
+        });
+
+        // ----- Delegate click for master rows -----
+        $('#matrix tbody').on('click', 'tr.master-row', function() {
+          const detailRow = $(this).next('tr.detail-row');
+          detailRow.toggle();
+        });
+
+        // ----- Update run count -----
+        function updateCount() {
+          const total = tableBody.querySelectorAll('tr.master-row').length;
+          const shown = tableBody.querySelectorAll('tr.master-row:not([style*="display: none"])').length;
+          countEl.textContent = `Showing ${shown} of ${total} runs`;
+        }
+        updateCount();
+
+        // ----- Simple search -----
+        searchInput.addEventListener("input", () => {
+          const term = searchInput.value.toLowerCase();
+          tableBody.querySelectorAll('tr.master-row').forEach(tr => {
+            const detailRow = tr.nextElementSibling;
+            if(tr.dataset.runName.includes(term)) {
+              tr.style.display = "";
+              detailRow.style.display = "none"; // collapse when shown
+            } else {
+              tr.style.display = "none";
+              detailRow.style.display = "none";
+            }
+          });
+          updateCount();
+        });
+
+      })
+      .catch(err => {
+        console.error("Failed to load run_matrix.json:", err);
+        countEl.textContent = "Error loading run data";
       });
 
-      // ----- Update run count -----
-      function updateCount() {
-        const total = tableBody.querySelectorAll('tr.master-row').length;
-        const shown = dt.rows({ search: 'applied' }).nodes()
-                      .toArray()
-                      .filter(r => r.classList.contains('master-row')).length;
-        countEl.textContent = `Showing ${shown} of ${total} runs`;
-      }
-      updateCount();
-      dt.on('search.dt draw.dt', updateCount);
-
-    })
-    .catch(err => {
-      console.error("Failed to load run_matrix.json:", err);
-      countEl.textContent = "Error loading run data";
-    });
-
-  // ----- Last updated (GMT + Local) -----
-  fetch("run_matrix.json", { method: "HEAD" })
-    .then(r => {
-      const gmt = new Date(r.headers.get("Last-Modified"));
-      const local = new Date(r.headers.get("Last-Modified"));
-      const options = {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'};
-      document.getElementById("last-updated").textContent =
-        `GMT: ${gmt.toUTCString()} | Local: ${local.toLocaleString(undefined, options)}`;
-    });
-</script>
+    // ----- Last updated (GMT + Local) -----
+    fetch("run_matrix.json", { method: "HEAD" })
+      .then(r => {
+        const gmt = new Date(r.headers.get("Last-Modified"));
+        const local = new Date(r.headers.get("Last-Modified"));
+        const options = {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'};
+        document.getElementById("last-updated").textContent =
+          `GMT: ${gmt.toUTCString()} | Local: ${local.toLocaleString(undefined, options)}`;
+      });
+  </script>
 
 </body>
 </html>
