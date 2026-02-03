@@ -13,46 +13,27 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
-    /* Highlighted run names */
+    /* Highlighted search */
     .highlight {
       background-color: yellow;
-      font-weight: bold;
     }
 
-    /* Tooltip styling */
+    /* Tooltip color only if text exists */
     .tooltip {
       color: blue;
-      cursor: help;
-      border-bottom: 1px dotted blue;
-    }
-
-    /* Nested table formatting */
-    table.nested {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    table.nested th, table.nested td {
-      border: 1px solid #ccc;
-      padding: 4px;
-      text-align: left;
-      font-weight: normal;
-    }
-
-    .master-row td.run-name {
       font-weight: bold;
-      cursor: pointer;
+      cursor: help;
     }
 
-    .detail-row td {
-      padding: 0;
+    /* Keep nested table aligned */
+    .nested {
+      border-collapse: collapse;
+      width: 100%;
     }
-
-    /* Search input styling */
-    #search-box {
-      margin: 10px 0;
+    .nested th, .nested td {
+      border: 1px solid #ddd;
       padding: 4px 6px;
-      font-size: 1rem;
-      width: 300px;
+      font-size: 0.9em;
     }
   </style>
 </head>
@@ -63,10 +44,14 @@
     <div><em>Last updated:</em> <span id="last-updated"></span></div>
   </div>
 
-  <input type="text" id="search-box" placeholder="Search run names...">
-
   <div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
-    Showing all runs
+    Showing 0 of 0 runs
+  </div>
+
+  <!-- Search input -->
+  <div style="margin-bottom:10px;">
+    <label for="search-input"><strong>Search Run Names:</strong> </label>
+    <input type="text" id="search-input" placeholder="Type to highlight runs">
   </div>
 
   <div id="table-container">
@@ -105,20 +90,23 @@
       "nudge_force_opt": "Select the form of the Target values:\nNEXT = Target at next future time\nLINEAR = Linearly interpolate Target values to current model time.\n0 = NEXT\n1 = LINEAR"
     };
 
+    const countEl = document.getElementById("run-count");
     const tableBody = document.querySelector("#matrix tbody");
 
-    // ----- Fetch and populate table -----
+    // ----- Fetch run data -----
     const url = `run_matrix.json?ts=${new Date().getTime()}`;
     fetch(url)
       .then(r => r.json())
       .then(data => {
 
+        // Helper to wrap text with tooltip only if defined
         function wrapTooltip(varString) {
           const key = varString.split("=")[0].trim();
           const text = tooltips[key];
           return text ? `<span class="tooltip" data-tooltip="${text}">${varString}</span>` : varString;
         }
 
+        // Build table with master/detail rows
         data.forEach(run => {
           const trMaster = document.createElement("tr");
           trMaster.classList.add("master-row");
@@ -127,7 +115,8 @@
 
           const trDetail = document.createElement("tr");
           trDetail.classList.add("detail-row");
-          trDetail.style.display = "none";
+          trDetail.style.display = "none"; // initially hidden
+
           trDetail.innerHTML = `
             <td>
               <table class="nested">
@@ -157,30 +146,39 @@
           tableBody.appendChild(trDetail);
         });
 
-        // Initialize DataTable WITHOUT search filtering
-        $('#matrix').DataTable({
+        // ----- Initialize DataTable -----
+        const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: 25,
-          order: [],
-          searching: false // disable built-in search
+          order: []
         });
 
-        // ----- Master row toggle -----
+        // ----- Master row click toggle -----
         $('#matrix tbody').on('click', 'tr.master-row', function() {
           const detailRow = $(this).next('tr.detail-row');
           detailRow.toggle();
         });
 
-        // ----- Highlight search matches -----
-        const searchBox = document.getElementById("search-box");
-        searchBox.addEventListener("input", () => {
-          const query = searchBox.value.toLowerCase();
-          document.querySelectorAll("tr.master-row").forEach(row => {
-            const name = row.querySelector("td.run-name").textContent.toLowerCase();
-            if (query && name.includes(query)) {
-              row.classList.add("highlight");
+        // ----- Update run count -----
+        function updateCount() {
+          const total = tableBody.querySelectorAll('tr.master-row').length;
+          const shown = dt.rows().nodes()
+                        .toArray()
+                        .filter(r => r.classList.contains('master-row')).length;
+          countEl.textContent = `Showing ${shown} of ${total} runs`;
+        }
+        updateCount();
+        dt.on('draw.dt', updateCount);
+
+        // ----- Search highlighting (without hiding rows) -----
+        const searchInput = document.getElementById("search-input");
+        searchInput.addEventListener("input", () => {
+          const query = searchInput.value.toLowerCase();
+          document.querySelectorAll("#matrix tbody tr.master-row td").forEach(td => {
+            if (td.textContent.toLowerCase().includes(query) && query !== "") {
+              td.classList.add("highlight");
             } else {
-              row.classList.remove("highlight");
+              td.classList.remove("highlight");
             }
           });
         });
@@ -188,7 +186,7 @@
       })
       .catch(err => {
         console.error("Failed to load run_matrix.json:", err);
-        document.getElementById("run-count").textContent = "Error loading run data";
+        countEl.textContent = "Error loading run data";
       });
 
     // ----- Last updated (GMT + Local) -----
