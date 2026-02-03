@@ -1,53 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <base href="./">
   <meta charset="UTF-8">
   <title>CESM Run Matrix</title>
 
   <link rel="stylesheet" href="style.css">
 
   <style>
-    .highlight {
-      background-color: yellow;
+    table {
+      width: 100%;
+      border-collapse: collapse;
     }
 
-    .pagination {
-      margin-top: 10px;
+    th, td {
+      padding: 8px;
+      vertical-align: top;
     }
 
-    .pagination button {
-      margin-right: 5px;
+    tr.master-row {
+      cursor: pointer;
+      font-weight: bold;
+      background: #fff;
+    }
+
+    tr.master-row:hover {
+      background: #f0f0f0;
     }
 
     tr.detail-row {
       display: none;
     }
 
-    tr.master-row {
-      cursor: pointer;
+    tr.detail-row td {
+      background: #fafafa;
+    }
+
+    table.nested {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.nested th {
+      text-align: left;
       font-weight: bold;
+    }
+
+    .tooltip {
+      color: #1a73e8;
+      cursor: help;
+      position: relative;
+    }
+
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      white-space: pre-wrap;
+      position: absolute;
+      left: 0;
+      top: 1.5em;
+      background: #333;
+      color: #fff;
+      padding: 6px;
+      font-size: 12px;
+      z-index: 10;
+      max-width: 400px;
+    }
+
+    .highlight {
+      background: yellow;
+    }
+
+    #pagination {
+      margin-top: 10px;
+    }
+
+    #pagination button {
+      margin: 0 2px;
     }
   </style>
 </head>
 <body>
 
 <div id="header-bar">
-  <h1>INFORM/COMPASS CESM Run Matrix</h1>
+  <div><h1>INFORM/COMPASS CESM Run Matrix</h1></div>
   <div><em>Last updated:</em> <span id="last-updated"></span></div>
 </div>
 
-<div style="margin-bottom:10px;">
-  <input
-    type="text"
-    id="search-box"
-    placeholder="Search run names (highlight only)"
-    style="width:300px;"
-  >
+<div style="margin: 10px 0;">
+  <label>
+    Search run name:
+    <input type="text" id="search-input" placeholder="Type to highlight…">
+  </label>
 </div>
 
-<div id="run-count" style="margin-bottom:10px; font-weight:bold;"></div>
+<div id="run-count"></div>
 
-<table id="matrix" border="1" cellspacing="0" cellpadding="6" width="100%">
+<table id="matrix">
   <thead>
     <tr>
       <th>Run Name</th>
@@ -56,123 +104,114 @@
   <tbody></tbody>
 </table>
 
-<div class="pagination">
-  <button id="prev-page">Prev</button>
-  <button id="next-page">Next</button>
-</div>
+<div id="pagination"></div>
 
 <script>
-const ROWS_PER_PAGE = 13;
-let currentPage = 1;
-let masterRows = [];
-
-const tableBody = document.querySelector("#matrix tbody");
-const countEl = document.getElementById("run-count");
-
-// ---------------- Tooltips ----------------
 const tooltips = {
   "nudge_uprof": "Selectively apply nudging to U",
-  "nudge_ucoef": "Nudging strength for U"
+  "nudge_ucoef": "Nudging strength [0,1]",
+  "nudge_force_opt": "Target forcing option"
 };
 
-// ---------------- Helpers ----------------
+const rowsPerPage = 13;
+let currentPage = 1;
+let runs = [];
+
 function wrapTooltip(text) {
   const key = text.split("=")[0].trim();
   return tooltips[key]
-    ? `<span class="tooltip" title="${tooltips[key]}">${text}</span>`
+    ? `<span class="tooltip" data-tooltip="${tooltips[key]}">${text}</span>`
     : text;
 }
 
-function renderPage() {
-  const start = (currentPage - 1) * ROWS_PER_PAGE;
-  const end = start + ROWS_PER_PAGE;
+function renderTable() {
+  const tbody = document.querySelector("#matrix tbody");
+  tbody.innerHTML = "";
 
-  masterRows.forEach((row, idx) => {
-    const show = idx >= start && idx < end;
-    row.master.style.display = show ? "" : "none";
-    row.detail.style.display = "none";
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+  const pageRuns = runs.slice(start, end);
+
+  pageRuns.forEach(run => {
+    const master = document.createElement("tr");
+    master.className = "master-row";
+    master.innerHTML = `<td class="run-name">${run.run_name}</td>`;
+    tbody.appendChild(master);
+
+    const detail = document.createElement("tr");
+    detail.className = "detail-row";
+    detail.innerHTML = `
+      <td>
+        <table class="nested">
+          <tr>
+            <th>Nudging</th>
+            <th>COSP</th>
+            <th>FINCL</th>
+            <th>Nudged Vars</th>
+            <th>COSP Vars</th>
+            <th>Other Vars</th>
+          </tr>
+          <tr>
+            <td>${run.nudging}</td>
+            <td>${run.cosp}</td>
+            <td>${Object.keys(run.fincl || {}).join(", ")}</td>
+            <td><pre>${(run.nudged_vars||[]).map(wrapTooltip).join("\n")}</pre></td>
+            <td><pre>${(run.cosp_vars||[]).map(wrapTooltip).join("\n")}</pre></td>
+            <td><pre>${(run.other_vars||[]).map(wrapTooltip).join("\n")}</pre></td>
+          </tr>
+        </table>
+      </td>
+    `;
+    tbody.appendChild(detail);
+
+    master.addEventListener("click", () => {
+      detail.style.display =
+        detail.style.display === "table-row" ? "none" : "table-row";
+    });
   });
 
-  const total = masterRows.length;
-  const shownStart = Math.min(start + 1, total);
-  const shownEnd = Math.min(end, total);
-
-  countEl.textContent = `Showing ${shownStart}–${shownEnd} of ${total} runs`;
+  document.getElementById("run-count").textContent =
+    `Showing ${pageRuns.length} of ${runs.length} runs`;
 }
 
-// ---------------- Fetch Data ----------------
-fetch(`run_matrix.json?ts=${Date.now()}`)
-  .then(r => r.json())
-  .then(data => {
+function renderPagination() {
+  const pages = Math.ceil(runs.length / rowsPerPage);
+  const div = document.getElementById("pagination");
+  div.innerHTML = "";
 
-    data.forEach(run => {
-      const master = document.createElement("tr");
-      master.className = "master-row";
-      master.innerHTML = `<td>${run.run_name}</td>`;
-
-      const detail = document.createElement("tr");
-      detail.className = "detail-row";
-      detail.innerHTML = `
-        <td>
-          <strong>Nudging:</strong> ${run.nudging}<br>
-          <strong>COSP:</strong> ${run.cosp}<br><br>
-          <strong>FINCL:</strong><br>
-          ${Object.keys(run.fincl || {}).map(wrapTooltip).join(", ")}<br><br>
-          <strong>Nudged Vars:</strong><pre>${(run.nudged_vars || []).map(wrapTooltip).join("\n")}</pre>
-          <strong>COSP Vars:</strong><pre>${(run.cosp_vars || []).map(wrapTooltip).join("\n")}</pre>
-          <strong>Other Vars:</strong><pre>${(run.other_vars || []).map(wrapTooltip).join("\n")}</pre>
-        </td>
-      `;
-
-      master.addEventListener("click", () => {
-        detail.style.display = detail.style.display === "none" ? "" : "none";
-      });
-
-      tableBody.appendChild(master);
-      tableBody.appendChild(detail);
-
-      masterRows.push({ master, detail });
-    });
-
-    renderPage();
-  });
-
-// ---------------- Pagination ----------------
-document.getElementById("prev-page").onclick = () => {
-  if (currentPage > 1) {
-    currentPage--;
-    renderPage();
+  for (let i = 1; i <= pages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.onclick = () => {
+      currentPage = i;
+      renderTable();
+      renderPagination();
+    };
+    if (i === currentPage) btn.disabled = true;
+    div.appendChild(btn);
   }
-};
+}
 
-document.getElementById("next-page").onclick = () => {
-  const maxPage = Math.ceil(masterRows.length / ROWS_PER_PAGE);
-  if (currentPage < maxPage) {
-    currentPage++;
-    renderPage();
-  }
-};
-
-// ---------------- Search (HIGHLIGHT ONLY) ----------------
-document.getElementById("search-box").addEventListener("input", e => {
+document.getElementById("search-input").addEventListener("input", e => {
   const q = e.target.value.toLowerCase();
-
-  masterRows.forEach(({ master }) => {
-    const td = master.querySelector("td");
-    td.classList.remove("highlight");
-
-    if (q && td.textContent.toLowerCase().includes(q)) {
-      td.classList.add("highlight");
-    }
+  document.querySelectorAll(".run-name").forEach(td => {
+    td.classList.toggle("highlight", q && td.textContent.toLowerCase().includes(q));
   });
 });
 
-// ---------------- Last Updated ----------------
+fetch(`run_matrix.json?ts=${Date.now()}`)
+  .then(r => r.json())
+  .then(data => {
+    runs = data;
+    renderTable();
+    renderPagination();
+  });
+
 fetch("run_matrix.json", { method: "HEAD" })
   .then(r => {
     const d = new Date(r.headers.get("Last-Modified"));
     document.getElementById("last-updated").textContent =
-      `GMT: ${d.toUTCString()} | Local: ${d.toLocaleString()}`;
+      `${d.toUTCString()} | Local: ${d.toLocaleString()}`;
   });
 </script>
 
