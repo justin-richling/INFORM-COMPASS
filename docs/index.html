@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <base href="./">
   <meta charset="UTF-8">
   <title>CESM Run Matrix</title>
 
@@ -10,24 +11,12 @@
 
   <!-- Optional marked.js for tooltip formatting -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-  <style>
-    /* Highlight for search matches */
-    .highlight {
-      background-color: yellow;
-      font-weight: bold;
-    }
-  </style>
 </head>
 <body>
 
   <div id="header-bar">
     <div><h1>INFORM/COMPASS CESM Run Matrix</h1></div>
     <div><em>Last updated:</em> <span id="last-updated"></span></div>
-  </div>
-
-  <div style="margin-bottom:10px;">
-    Search run names: <input type="text" id="search-box" placeholder="Type to highlight">
   </div>
 
   <div id="run-count" style="margin-bottom: 10px; font-weight: bold;">
@@ -72,19 +61,19 @@
 
     const countEl = document.getElementById("run-count");
     const tableBody = document.querySelector("#matrix tbody");
-    const searchBox = document.getElementById("search-box");
 
+    // Force fresh fetch to avoid caching
     const url = `run_matrix.json?ts=${new Date().getTime()}`;
 
     fetch(url)
       .then(r => r.json())
       .then(data => {
 
-        // Helper function: wrap with tooltip if exists
+        // Helper function: wrap with tooltip only if exists
         function wrapTooltip(varString) {
           const key = varString.split("=")[0].trim();
           const text = tooltips[key];
-          return text ? `<span class="tooltip" data-tooltip="${text}">${varString}</span>` : varString;
+          return text ? `<span class="tooltip" data-tooltip="${text}" style="color:blue">${varString}</span>` : varString;
         }
 
         // Populate table with master/detail rows
@@ -127,27 +116,31 @@
           tableBody.appendChild(trDetail);
         });
 
+        // ----- Initialize DataTable AFTER all rows are added -----
         const totalRows = tableBody.querySelectorAll('tr.master-row').length;
-
         const dt = $('#matrix').DataTable({
           scrollX: true,
           pageLength: totalRows < 25 ? totalRows : 25,
-          order: [],
-          searching: false
+          order: []
         });
-
-        /*
-        // ----- Initialize DataTable WITHOUT search -----
-        const dt = $('#matrix').DataTable({
-          scrollX: true,
-          pageLength: 25,
-          order: [],
-          searching: false  // disable DataTables filtering
-        });*/
 
         // ----- Delegate click for master rows -----
         $('#matrix tbody').on('click', 'tr.master-row', function() {
-          $(this).next('tr.detail-row').toggle();
+          const detailRow = $(this).next('tr.detail-row');
+          detailRow.toggle();
+        });
+
+        // ----- Highlight search matches in run names (without removing any rows) -----
+        $('#matrix_filter input').on('input', function() {
+          const searchTerm = $(this).val().toLowerCase();
+          tableBody.querySelectorAll('tr.master-row').forEach(tr => {
+            const td = tr.querySelector('.run-name');
+            if (td.textContent.toLowerCase().includes(searchTerm) && searchTerm.length > 0) {
+              td.style.backgroundColor = 'yellow';
+            } else {
+              td.style.backgroundColor = '';
+            }
+          });
         });
 
         // ----- Update run count -----
@@ -156,20 +149,6 @@
           countEl.textContent = `Showing ${total} runs`;
         }
         updateCount();
-
-        // ----- Custom highlight search -----
-        searchBox.addEventListener('input', () => {
-          const query = searchBox.value.toLowerCase();
-          tableBody.querySelectorAll('tr.master-row').forEach(tr => {
-            const td = tr.querySelector('td.run-name');
-            const text = td.textContent.toLowerCase();
-            if(query && text.includes(query)) {
-              td.classList.add('highlight');
-            } else {
-              td.classList.remove('highlight');
-            }
-          });
-        });
 
       })
       .catch(err => {
@@ -186,6 +165,7 @@
         document.getElementById("last-updated").textContent =
           `GMT: ${gmt.toUTCString()} | Local: ${local.toLocaleString(undefined, options)}`;
       });
+
   </script>
 </body>
 </html>
