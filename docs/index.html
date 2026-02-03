@@ -157,7 +157,7 @@
           const detailRow = $(this).next('tr.detail-row');
           detailRow.toggle();
         });
-
+        /*
         // ----- Update run count -----
         function updateCount() {
           const total = tableBody.querySelectorAll('tr.master-row').length;
@@ -168,7 +168,7 @@
         }
         updateCount();
         dt.on('draw.dt', updateCount);
-
+        */
         // ----- Search highlighting (without hiding rows) -----
         const searchInput = document.getElementById("search-input");
         searchInput.addEventListener("input", () => {
